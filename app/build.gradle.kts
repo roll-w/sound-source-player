@@ -18,6 +18,7 @@ plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -37,6 +38,18 @@ android {
                 cppFlags += ""
             }
         }
+        val filesAuthorityValue = "$applicationId.FileProvider"
+        manifestPlaceholders["filesAuthority"] = filesAuthorityValue
+        buildConfigField(
+            "String",
+            "FILES_AUTHORITY",
+            "\"${filesAuthorityValue}\""
+        )
+
+        buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
+        buildConfigField("String", "VERSION_CODE", "\"$versionCode\"")
+        buildConfigField("String", "APPLICATION_ID", "\"$applicationId\"")
+
     }
 
     buildTypes {
@@ -57,6 +70,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+    buildFeatures {
+        buildConfig = true
+        viewBinding = true
+        dataBinding = true
     }
 }
 
