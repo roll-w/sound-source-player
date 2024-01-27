@@ -16,6 +16,9 @@
 
 package tech.rollw.support.appcompat
 
+import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -29,5 +32,77 @@ abstract class AppActivity : AppCompatActivity() {
         if (localeDelegate.isLocaleChanged) {
             recreate()
         }
+    }
+
+    private val activityResultLauncherMap: MutableMap<Class<out ActivityResultContract<*, *>?>,
+            ActivityResultContractWrapper<*, *>> = hashMapOf()
+
+    protected fun <I, O> registerActivityLauncher(contract: ActivityResultContract<I, O>) {
+        val wrapper = ActivityResultContractWrapper(contract)
+        activityResultLauncherMap[contract::class.java] =
+            wrapper
+    }
+
+    fun <I, O> registerActivityResultCallback(
+        clazz: Class<out ActivityResultContract<I, O>?>,
+        callback: ActivityResultCallback<O>?,
+        unregisterAfterCallback: Boolean = true
+    ): ActivityResultLauncher<I> {
+        val wrapper = activityResultLauncherMap[clazz] as ActivityResultContractWrapper<I, O>?
+            ?: throw IllegalStateException("ActivityResultLauncher have not been registered.")
+        wrapper.callbacks.registerOnActivityResultCallback(callback, unregisterAfterCallback)
+        return wrapper.launcher
+    }
+
+    fun <I, O> unregisterActivityResultCallback(
+        clazz: Class<out ActivityResultContract<I, O>?>,
+        callback: ActivityResultCallback<O>?
+    ) {
+        val wrapper = activityResultLauncherMap[clazz] as ActivityResultContractWrapper<I, O>?
+            ?: throw IllegalStateException("ActivityResultContract have not been registered.")
+        wrapper.callbacks.unregisterOnActivityResultCallback(callback)
+    }
+
+    fun <I, O> getActivityResultLauncher(clazz: Class<out ActivityResultContract<I, O>?>): ActivityResultLauncher<I> {
+        val wrapper = activityResultLauncherMap[clazz] as ActivityResultContractWrapper<I, O>?
+            ?: throw IllegalStateException("ActivityResultContract have not been registered.")
+        return wrapper.launcher
+    }
+
+    private class ActivityResultCallbacks<O> : ActivityResultCallback<O> {
+        private val callbacks: MutableMap<ActivityResultCallback<O>, Boolean> = HashMap()
+
+        fun registerOnActivityResultCallback(callback: ActivityResultCallback<O>?, unregisterAfterCallback: Boolean) {
+            if (callback == null) {
+                return
+            }
+            callbacks[callback] = unregisterAfterCallback
+        }
+
+        fun unregisterOnActivityResultCallback(callback: ActivityResultCallback<O>?) {
+            if (callback == null) {
+                return
+            }
+            callbacks.remove(callback)
+        }
+
+        override fun onActivityResult(result: O) {
+            val it = callbacks.keys.iterator()
+            while (it.hasNext()) {
+                val callback = it.next()
+                callback.onActivityResult(result)
+                if (callbacks[callback] == true) {
+                    it.remove()
+                }
+            }
+        }
+    }
+
+    private inner class ActivityResultContractWrapper<I, O>(
+        contract: ActivityResultContract<I, O>
+    ) {
+        val callbacks: ActivityResultCallbacks<O> = ActivityResultCallbacks()
+        val launcher: ActivityResultLauncher<I> =
+            this@AppActivity.registerForActivityResult(contract, callbacks)
     }
 }
