@@ -17,10 +17,31 @@
 package tech.rollw.player
 
 import android.app.Application
+import android.content.Context
 
 /**
  * @author RollW
  */
 class PlayerApplication : Application() {
 
+    override fun onCreate() {
+        super.onCreate()
+    }
+
+    private val services: MutableMap<Class<*>, Any> = hashMapOf()
+
+    fun <T : Any> getService(clazz: Class<T>, service: () -> T): T {
+        return services.getOrPut(clazz) { service.invoke() } as T
+    }
+
+    fun destroyService(clazz: Class<*>) {
+        services.remove(clazz)
+    }
+}
+
+fun <T : Any> Context.getApplicationService(clazz: Class<T>, service: () -> T): T =
+    (applicationContext as PlayerApplication).getService(clazz, service)
+
+fun Context.destroyApplicationService(clazz: Class<*>) {
+    (applicationContext as PlayerApplication).destroyService(clazz)
 }
