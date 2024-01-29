@@ -34,12 +34,13 @@ enum class AudioFormatType(val extension: String) {
     ;
 
     companion object {
+        @JvmStatic
         fun fromExtension(extension: String): AudioFormatType {
-            return entries.find {
-                it.extension.equals(extension, ignoreCase = true)
-            } ?: throw IllegalArgumentException("Unknown extension: $extension")
+            return fromExtensionOrNull(extension)
+                ?: throw IllegalArgumentException("Unknown extension: $extension")
         }
 
+        @JvmStatic
         fun fromExtensionOrNull(extension: String): AudioFormatType? {
             return entries.find {
                 it.extension.equals(extension, ignoreCase = true)
