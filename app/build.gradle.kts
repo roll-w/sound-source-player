@@ -47,7 +47,7 @@ android {
         )
 
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
-        buildConfigField("String", "VERSION_CODE", "\"$versionCode\"")
+        buildConfigField("int", "VERSION_CODE", "$versionCode")
         buildConfigField("String", "APPLICATION_ID", "\"$applicationId\"")
 
     }
