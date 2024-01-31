@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import com.android.build.api.dsl.ApplicationProductFlavor
+import java.util.*
+
 plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
@@ -49,13 +52,42 @@ android {
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         buildConfigField("int", "VERSION_CODE", "$versionCode")
         buildConfigField("String", "APPLICATION_ID", "\"$applicationId\"")
+        vectorDrawables {
+            useSupportLibrary = true
+        }
 
+        signingConfigs {
+            val storeFile = project.rootProject.file("Keystore/key.jks")
+            val properties = Properties()
+            properties.load(project.rootProject.file("local.properties").inputStream())
+
+            val storePassword = properties.getProperty("KEY_STORE_PASSWORD")
+            val keyAlias = properties.getProperty("KEY_ALIAS")
+            val keyPassword = properties.getProperty("KEY_PASSWORD")
+
+            create("default") {
+                this.storeFile = storeFile
+                this.storePassword = storePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+                this.enableV2Signing = true
+                this.enableV3Signing = true
+                this.enableV4Signing = true
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+            signingConfig = signingConfigs["default"]
+        }
+        debug {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs["default"]
         }
     }
     ksp {
