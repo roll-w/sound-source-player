@@ -29,10 +29,11 @@ android {
     compileSdk = 34
 
     defaultConfig {
+        manifestPlaceholders += mapOf()
         applicationId = "tech.rollw.player"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        versionCode = 2
         versionName = "0.1.2.R"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -81,8 +82,6 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
             signingConfig = signingConfigs["default"]
         }
         debug {
@@ -110,10 +109,22 @@ android {
         buildConfig = true
         viewBinding = true
         dataBinding = true
+        compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
 }
 
 dependencies {
+    implementation(project(":support"))
+
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.core:core-ktx:1.12.0")
@@ -121,19 +132,26 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
 
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.transition:transition-ktx:1.4.1")
     implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation(project(":support"))
+
+    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation(platform("androidx.compose:compose-bom:2024.01.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
 
     val lifeCycleVersion = "2.7.0"
     val navigationVersion = "2.7.6"
     val roomVersion = "2.6.1"
     val workVersion = "2.9.0"
-    val media2Version = "1.3.0"
+    val media3Version = "1.2.1"
 
     implementation("androidx.palette:palette-ktx:1.0.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifeCycleVersion")
@@ -143,21 +161,18 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifeCycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifeCycleVersion")
 
-
-    implementation("androidx.media:media:1.7.0")
-    implementation("androidx.media2:media2-session:$media2Version")
-
+    implementation("androidx.media3:media3-session:$media3Version")
 
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVersion")
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVersion")
 
     implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-guava:$roomVersion")
 
     implementation("androidx.work:work-runtime:$workVersion")
     implementation("androidx.work:work-runtime-ktx:$workVersion")
-
 
     implementation("net.jthink:jaudiotagger:3.0.1")
     implementation("com.google.oboe:oboe:1.8.0")
@@ -173,4 +188,9 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.01.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
