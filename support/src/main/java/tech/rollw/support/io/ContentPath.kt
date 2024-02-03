@@ -17,12 +17,13 @@
 package tech.rollw.support.io
 
 import android.net.Uri
+import tech.rollw.support.getSuffix
 import java.io.File
 
 /**
  * @author RollW
  */
-data class StoragePath(
+data class ContentPath(
     val path: String,
     val type: PathType
 ) {
@@ -34,11 +35,10 @@ data class StoragePath(
     }
 
     fun getSuffix(): String {
-        return FileUtils.getSuffix(path)
+        return path.getSuffix()
     }
-
 }
 
-fun String.toStoragePath(type: PathType) = StoragePath(this, type)
+fun String.toContentPath(type: PathType) = ContentPath(this, type)
 
-fun Uri.toStoragePath() = StoragePath(toString(), PathType.URI)
+fun Uri.toContentPath() = ContentPath(toString(), PathType.URI)
