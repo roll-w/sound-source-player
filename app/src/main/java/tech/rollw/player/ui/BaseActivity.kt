@@ -73,7 +73,7 @@ abstract class BaseActivity : AppActivity() {
         return ColorUtils.calculateLuminance(color)
     }
 
-    protected fun getStatusBarHeight(): Int {
+    fun getStatusBarHeight(): Int {
         val resourceId = resources.getIdentifier(
             "status_bar_height", "dimen",
             "android"
