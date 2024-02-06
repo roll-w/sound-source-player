@@ -16,10 +16,21 @@
 
 package tech.rollw.support.appcompat
 
+import android.content.Context
+import android.graphics.Color
+import android.util.Log
+import android.view.View
+import android.view.WindowManager
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import tech.rollw.support.Switch
 
 /**
  * @author RollW
@@ -30,7 +41,74 @@ abstract class AppActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (localeDelegate.isLocaleChanged) {
-            recreate()
+            Log.d("AppActivity", "Locale changed, recreate activity. new=${LocaleDelegate.defaultLocale}")
+
+            ActivityCompat.recreate(this)
+        }
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        newBase?.resources?.configuration?.let {
+            localeDelegate.updateConfiguration(it)
+        }
+
+        super.attachBaseContext(newBase)
+    }
+
+    companion object {
+        const val COLOR_DEFAULT = -1
+    }
+
+    protected fun setViewStatusBarHeight(view: View) {
+        view.layoutParams.height = getStatusBarHeight()
+    }
+
+    protected fun setStatusBar(
+        @ColorInt colorBackground: Int = COLOR_DEFAULT,
+        fullScreen: Boolean = false,
+        lightStatusBar: Switch = Switch.AUTO
+    ) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        WindowCompat.setDecorFitsSystemWindows(window, fullScreen)
+        if (colorBackground != COLOR_DEFAULT) {
+            window.statusBarColor = colorBackground
+        }
+        val lightness = if (colorBackground == COLOR_DEFAULT) 0.0 else
+            computeColorLightness(colorBackground)
+
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            val lightBarState = when (lightStatusBar) {
+                Switch.ON -> true
+                Switch.NONE, Switch.OFF -> false
+                Switch.AUTO -> lightness >= 0.5f
+            }
+            if (lightStatusBar != Switch.NONE) {
+                isAppearanceLightStatusBars = lightBarState
+                isAppearanceLightNavigationBars = lightBarState
+            }
+
+            if (fullScreen) {
+                hide(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+    }
+
+    private fun computeColorLightness(@ColorInt color: Int): Double {
+        if (color == Color.TRANSPARENT) {
+            return 0.0
+        }
+        return ColorUtils.calculateLuminance(color)
+    }
+
+    fun getStatusBarHeight(): Int {
+        val resourceId = resources.getIdentifier(
+            "status_bar_height", "dimen",
+            "android"
+        )
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
+        } else {
+            0
         }
     }
 
@@ -44,8 +122,8 @@ abstract class AppActivity : AppCompatActivity() {
     }
 
     fun <I, O> registerActivityResultCallback(
-        clazz: Class<out ActivityResultContract<I, O>?>,
-        callback: ActivityResultCallback<O>?,
+        clazz: Class<out ActivityResultContract<I, O>>,
+        callback: ActivityResultCallback<O>,
         unregisterAfterCallback: Boolean = true
     ): ActivityResultLauncher<I> {
         val wrapper = activityResultLauncherMap[clazz] as ActivityResultContractWrapper<I, O>?
@@ -55,8 +133,8 @@ abstract class AppActivity : AppCompatActivity() {
     }
 
     fun <I, O> unregisterActivityResultCallback(
-        clazz: Class<out ActivityResultContract<I, O>?>,
-        callback: ActivityResultCallback<O>?
+        clazz: Class<out ActivityResultContract<I, O>>,
+        callback: ActivityResultCallback<O>
     ) {
         val wrapper = activityResultLauncherMap[clazz] as ActivityResultContractWrapper<I, O>?
             ?: throw IllegalStateException("ActivityResultContract have not been registered.")

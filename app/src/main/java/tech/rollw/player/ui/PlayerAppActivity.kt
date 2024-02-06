@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package tech.rollw.player
+package tech.rollw.player.ui
 
-/**
- * @author RollW
- */
-enum class Switch {
-    ON,
-    OFF,
-    AUTO,
-    NONE
+import android.os.Bundle
+import tech.rollw.support.appcompat.AppActivity
+
+abstract class PlayerAppActivity : AppActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
 }

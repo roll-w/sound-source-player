@@ -38,8 +38,9 @@ import tech.rollw.player.BuildConfig
 import tech.rollw.player.R
 import tech.rollw.player.databinding.ActivitySplashBinding
 import tech.rollw.player.ui.player.MainActivity
+import tech.rollw.support.appcompat.AppActivity
 
-class SplashActivity : BaseActivity() {
+class SplashActivity : AppActivity() {
     private lateinit var binding: ActivitySplashBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {

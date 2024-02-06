@@ -28,15 +28,15 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.fragment
 import com.google.android.material.color.DynamicColors
 import tech.rollw.player.R
-import tech.rollw.player.Switch
 import tech.rollw.player.databinding.ActivitySettingBinding
-import tech.rollw.player.ui.BaseActivity
 import tech.rollw.player.ui.OnCreateViewHost
+import tech.rollw.support.Switch
+import tech.rollw.support.appcompat.AppActivity
 
 /**
  * @author RollW
  */
-class SettingActivity : BaseActivity() {
+class SettingActivity : AppActivity() {
     private lateinit var binding: ActivitySettingBinding
     private val settingViewModel by viewModels<SettingViewModel>()
 

@@ -22,8 +22,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceFragmentCompat
-import tech.rollw.player.ui.BaseActivity
 import tech.rollw.player.ui.OnCreateViewHost
+import tech.rollw.support.appcompat.AppActivity
 
 /**
  * @author RollW
@@ -74,12 +74,12 @@ abstract class BasePreferenceFragment : PreferenceFragmentCompat(), OnCreateView
     ) {
     }
 
-    fun requireBaseActivity(): BaseActivity {
-        return super.requireActivity() as BaseActivity
+    fun requireAppActivity(): AppActivity {
+        return super.requireActivity() as AppActivity
     }
 
     fun requireSettingActivity(): SettingActivity {
-        return super.requireActivity() as SettingActivity
+        return requireAppActivity() as SettingActivity
     }
 
     private val onCreateViewListeners = mutableSetOf<OnCreateViewHost.OnCreateViewListener>()
