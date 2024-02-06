@@ -20,8 +20,15 @@ import androidx.room.*
 import tech.rollw.support.io.ContentPath
 
 /**
+ * The path of the audio file.
+ *
  * @author RollW
  */
+// We choose split the audio path from the [Audio] class,
+// because there are some files that have multiple paths,
+// but they are still referring to the same file.
+// We need to handle this but also don't want the [Audio]
+// to become too complex.
 @Entity(
     tableName = "audio_path",
     indices = [
