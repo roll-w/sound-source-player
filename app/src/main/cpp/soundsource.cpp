@@ -23,7 +23,7 @@ using namespace TagLib;
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_openFile(JNIEnv *env, jobject thiz,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_openFile(JNIEnv *env, jobject thiz,
                                                       jint file_descriptor,
                                                       jboolean jreadonly) {
     bool readonly = jreadonly;
@@ -39,7 +39,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_openFile(JNIEnv *env, jobject thiz,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_closeFile(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_closeFile(JNIEnv *env,
                                                        jobject thiz,
                                                        jlong fileRef) {
     FileRef *f = (FileRef *) fileRef;
@@ -49,7 +49,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_closeFile(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_getTagField(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getTagField(JNIEnv *env,
                                                          jobject thiz,
                                                          jlong fileRef,
                                                          jstring jTagField) {
@@ -75,7 +75,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_getTagField(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_getArtwork(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getArtwork(JNIEnv *env,
                                                         jobject thiz,
                                                         jlong fileRef) {
     // FIXME: cannot read picture from some flac files
@@ -102,7 +102,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_getArtwork(JNIEnv *env,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_setTagField(JNIEnv *env, jobject thiz,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_setTagField(JNIEnv *env, jobject thiz,
                                                          jlong file_ref,
                                                          jstring tag_field,
                                                          jstring value) {
@@ -110,7 +110,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_setTagField(JNIEnv *env, jobject th
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_setArtwork(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_setArtwork(JNIEnv *env,
                                                         jobject thiz,
                                                         jlong file_ref,
                                                         jbyteArray artwork) {
@@ -118,7 +118,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_setArtwork(JNIEnv *env,
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_saveFile(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_saveFile(JNIEnv *env,
                                                       jobject thiz,
                                                       jlong file_ref) {
     // TODO: implement nativeSave()
@@ -126,7 +126,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_saveFile(JNIEnv *env,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_deleteTagField(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_deleteTagField(JNIEnv *env,
                                                             jobject thiz,
                                                             jlong file_ref,
                                                             jstring tag_field) {
@@ -135,7 +135,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_deleteTagField(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_lastModified(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_lastModified(JNIEnv *env,
                                                           jobject thiz,
                                                           jint fd) {
 
@@ -149,7 +149,7 @@ Java_tech_rollw_player_audio_tag_LibAudioTag_lastModified(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_tech_rollw_player_audio_tag_LibAudioTag_getAudioProperties(JNIEnv *env,
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getAudioProperties(JNIEnv *env,
                                                                 jobject thiz,
                                                                 jlong file_ref) {
     FileRef *ref = (FileRef *) file_ref;
