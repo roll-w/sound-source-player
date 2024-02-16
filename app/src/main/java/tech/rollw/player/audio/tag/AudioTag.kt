@@ -25,6 +25,9 @@ import java.io.Closeable
 interface AudioTag : Closeable {
     val audioFormatType: AudioFormatType
 
+    /**
+     * Get the tag field value.
+     */
     fun getTagField(field: AudioTagField): String?
 
     fun getArtwork(): ByteArray?
@@ -33,9 +36,15 @@ interface AudioTag : Closeable {
 
     fun getLastModified(): Long
 
-    fun setTagField(field: AudioTagField, value: String)
+    /**
+     * Set the tag field to the given value.
+     * Will ignore unsupported fields.
+     *
+     * If the value is null, the field will be removed.
+     */
+    fun setTagField(field: AudioTagField, value: String?)
 
-    fun setArtwork(artwork: ByteArray)
+    fun setArtwork(artwork: ByteArray?)
 
     /**
      * After called [setTagField], the tag will not
