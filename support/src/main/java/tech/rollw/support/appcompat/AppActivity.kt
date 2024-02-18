@@ -32,6 +32,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import tech.rollw.support.Switch
 
+
 /**
  * @author RollW
  */
@@ -63,6 +64,27 @@ abstract class AppActivity : AppCompatActivity() {
         view.layoutParams.height = getStatusBarHeight()
     }
 
+    protected fun setNavigationBar(
+        @ColorInt colorBackground: Int = COLOR_DEFAULT,
+        fullScreen: Boolean = false,
+        lightStatusBar: Switch = Switch.AUTO
+    ) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        WindowCompat.setDecorFitsSystemWindows(window, fullScreen)
+
+        if (colorBackground != COLOR_DEFAULT) {
+            window.navigationBarColor = colorBackground
+        }
+
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            setLightBars(colorBackground, lightStatusBar)
+
+            if (fullScreen) {
+                hide(WindowInsetsCompat.Type.navigationBars())
+            }
+        }
+    }
+
     protected fun setStatusBar(
         @ColorInt colorBackground: Int = COLOR_DEFAULT,
         fullScreen: Boolean = false,
@@ -73,23 +95,29 @@ abstract class AppActivity : AppCompatActivity() {
         if (colorBackground != COLOR_DEFAULT) {
             window.statusBarColor = colorBackground
         }
-        val lightness = if (colorBackground == COLOR_DEFAULT) 0.0 else
-            computeColorLightness(colorBackground)
 
         WindowCompat.getInsetsController(window, window.decorView).apply {
-            val lightBarState = when (lightStatusBar) {
-                Switch.ON -> true
-                Switch.NONE, Switch.OFF -> false
-                Switch.AUTO -> lightness >= 0.5f
-            }
-            if (lightStatusBar != Switch.NONE) {
-                isAppearanceLightStatusBars = lightBarState
-                isAppearanceLightNavigationBars = lightBarState
-            }
-
+            setLightBars(colorBackground, lightStatusBar)
             if (fullScreen) {
                 hide(WindowInsetsCompat.Type.statusBars())
             }
+        }
+    }
+
+    private fun setLightBars(
+        colorBackground: Int = COLOR_DEFAULT,
+        lightStatusBar: Switch = Switch.NONE
+    ) {
+        val lightness = if (colorBackground == COLOR_DEFAULT) 0.0 else
+            computeColorLightness(colorBackground)
+        val lightBarState = when (lightStatusBar) {
+            Switch.ON -> true
+            Switch.NONE, Switch.OFF -> false
+            Switch.AUTO -> lightness >= 0.5f
+        }
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = lightBarState
+            isAppearanceLightNavigationBars = lightBarState
         }
     }
 
@@ -103,6 +131,27 @@ abstract class AppActivity : AppCompatActivity() {
     fun getStatusBarHeight(): Int {
         val resourceId = resources.getIdentifier(
             "status_bar_height", "dimen",
+            "android"
+        )
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
+        } else {
+            0
+        }
+    }
+
+    fun getActualNavigationBarHeight(): Int {
+        val compat = WindowInsetsCompat.toWindowInsetsCompat(
+            window.decorView.rootWindowInsets, window.decorView)
+        val barInsets = compat.getInsets(
+            WindowInsetsCompat.Type.navigationBars()
+        )
+        return barInsets.bottom - barInsets.top
+    }
+
+    fun getNavigationBarHeight(): Int {
+        val resourceId = resources.getIdentifier(
+            "navigation_bar_height", "dimen",
             "android"
         )
         return if (resourceId > 0) {
