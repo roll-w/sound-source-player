@@ -71,15 +71,36 @@ class SplashActivity : AppActivity() {
         setupView()
         // overridePendingTransition(R.anim.anim_fade_in, R.anim.anim_fade_out)
 
-        val recentIntent = intent
+        val source = intent?.getStringExtra(EXTRA_SOURCE)
+        when (source) {
+            SOURCE_NOTIFICATION,
+            SOURCE_WIDGET,
+            SOURCE_SHORTCUT,
+            SOURCE_TILE -> {
+                startMainActivity(0)
+                return
+            }
+            else -> startMainActivity(DURATION)
+        }
+    }
 
-         Looper.myLooper()?.let {
-             Handler(it).postDelayed({
-                 val intent = requireMainActivityIntent()
-                 startActivity(intent)
-                 this@SplashActivity.finish()
-             }, DURATION)
-         }
+    private fun startMainActivity(delay: Long = DURATION) {
+        fun start() {
+            val intent = requireMainActivityIntent()
+            startActivity(intent)
+            this@SplashActivity.finish()
+        }
+
+        if (delay <= 0) {
+            start()
+            return
+        }
+
+        Looper.myLooper()?.let {
+            Handler(it).postDelayed({
+                start()
+            }, delay)
+        }
     }
 
 
@@ -139,6 +160,13 @@ class SplashActivity : AppActivity() {
     }
 
     companion object {
-       private const val DURATION = 1500L
+        private const val DURATION = 1500L
+
+        const val EXTRA_SOURCE = "source"
+
+        const val SOURCE_NOTIFICATION = "notification"
+        const val SOURCE_WIDGET = "widget"
+        const val SOURCE_SHORTCUT = "shortcut"
+        const val SOURCE_TILE = "tile"
     }
 }
