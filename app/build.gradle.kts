@@ -89,6 +89,37 @@ android {
             signingConfig = signingConfigs["default"]
         }
     }
+    flavorDimensions += "abi"
+    productFlavors {
+        fun createByAbi(
+            name: String,
+            abis: List<String>
+        ): ApplicationProductFlavor {
+            return this.create(name) {
+                buildConfigField("String", "ABI", "\"$name\"")
+                dimension = "abi"
+                ndk {
+                    abiFilters += abis
+                }
+                externalNativeBuild {
+                    cmake {
+                        abiFilters += abis
+                    }
+                }
+            }
+        }
+        createByAbi("arm64-v8a", listOf("arm64-v8a"))
+        createByAbi("armeabi-v7a", listOf("armeabi-v7a"))
+
+        createByAbi("x86", listOf("x86"))
+        createByAbi("x86_64", listOf("x86_64"))
+        createByAbi(
+            "universal", listOf(
+                "arm64-v8a", "armeabi-v7a",
+                "x86", "x86_64"
+            )
+        )
+    }
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
     }
