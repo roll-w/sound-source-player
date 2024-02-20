@@ -134,6 +134,7 @@ dependencies {
     implementation("androidx.browser:browser:1.7.0")
     implementation("androidx.activity:activity-ktx:1.8.2")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation("androidx.window:window:1.2.0")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.transition:transition-ktx:1.4.1")
@@ -151,7 +152,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
 
     val lifeCycleVersion = "2.7.0"
-    val navigationVersion = "2.7.6"
+    val navigationVersion = "2.7.7"
     val roomVersion = "2.6.1"
     val workVersion = "2.9.0"
     val media3Version = "1.2.1"
@@ -163,11 +164,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:$lifeCycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifeCycleVersion")
     implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifeCycleVersion")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifeCycleVersion")
 
     implementation("androidx.media3:media3-session:$media3Version")
+    implementation("androidx.media3:media3-exoplayer:$media3Version")
 
     implementation("androidx.navigation:navigation-ui-ktx:$navigationVersion")
     implementation("androidx.navigation:navigation-fragment-ktx:$navigationVersion")
+    implementation("androidx.navigation:navigation-compose:$navigationVersion")
 
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
@@ -177,14 +181,12 @@ dependencies {
     implementation("androidx.work:work-runtime:$workVersion")
     implementation("androidx.work:work-runtime-ktx:$workVersion")
 
-    implementation("net.jthink:jaudiotagger:3.0.1")
-    implementation("com.google.oboe:oboe:1.8.0")
+    implementation("com.google.oboe:oboe:1.8.1")
 
     implementation("space.lingu.fiesta:fiesta-annotations:0.2.0")
     compileOnly("space.lingu.fiesta:fiesta-checker:0.2.0")
 
-    implementation("com.github.bumptech.glide:glide:4.14.2")
-    ksp("com.github.bumptech.glide:compiler:4.14.2")
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
     debugImplementation("com.guolindev.glance:glance:1.1.0")
 
