@@ -19,8 +19,8 @@ package tech.rollw.player.util
 import java.io.File
 import java.io.FileOutputStream
 import java.io.PrintWriter
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 /**
@@ -66,15 +66,14 @@ class FileLogger(
         message: String,
         throwable: Throwable?
     ) {
-        val timestamp = System.currentTimeMillis()
-        val formatTime = TIME_FORMATTER.format(Date(timestamp))
-
+        val formatTime = LocalDateTime.now()
+            .format(TIME_FORMATTER)
         printWriter.println(
             "$formatTime ${level.level} --- [${tag ?: "System"}]: $message"
         )
         throwable?.let {
             printWriter.println(
-                formatStackTraces(it)
+                it.stackTraceToString()
             )
         }
         printWriter.flush()
@@ -90,6 +89,6 @@ class FileLogger(
     }
 
     companion object {
-        private val TIME_FORMATTER = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+        private val TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
     }
 }
