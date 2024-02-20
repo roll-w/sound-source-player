@@ -17,6 +17,7 @@
 package tech.rollw.support.appcompat
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.util.Log
 import android.view.View
@@ -26,6 +27,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
@@ -54,6 +56,44 @@ abstract class AppActivity : AppCompatActivity() {
         }
 
         super.attachBaseContext(newBase)
+    }
+
+    fun isNightMode(): Boolean {
+        return (resources.configuration.uiMode and
+                Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    }
+
+    /**
+     * @see AppCompatDelegate.setLocalNightMode
+     */
+    fun setLocalNightMode(state: Switch) {
+        when (state) {
+            Switch.ON -> delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES
+            Switch.OFF -> delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
+            Switch.AUTO -> delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            else -> {}
+        }
+    }
+
+    /**
+     * @see AppCompatDelegate.setDefaultNightMode
+     */
+    fun setDefaultNightMode(state: Switch) {
+        when (state) {
+            Switch.ON -> AppCompatDelegate.setDefaultNightMode(
+                AppCompatDelegate.MODE_NIGHT_YES
+            )
+
+            Switch.OFF -> AppCompatDelegate.setDefaultNightMode(
+                AppCompatDelegate.MODE_NIGHT_NO
+            )
+
+            Switch.AUTO -> AppCompatDelegate.setDefaultNightMode(
+                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            )
+
+            else -> {}
+        }
     }
 
     companion object {
@@ -142,7 +182,8 @@ abstract class AppActivity : AppCompatActivity() {
 
     fun getActualNavigationBarHeight(): Int {
         val compat = WindowInsetsCompat.toWindowInsetsCompat(
-            window.decorView.rootWindowInsets, window.decorView)
+            window.decorView.rootWindowInsets, window.decorView
+        )
         val barInsets = compat.getInsets(
             WindowInsetsCompat.Type.navigationBars()
         )
