@@ -17,7 +17,38 @@
 <resources>
     <string name="app_name">音源</string>
     <string name="close">关闭</string>
+    <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
     <string name="search">搜索</string>
     <string name="setting">设置</string>
     <string name="media_store">媒体库</string>
+
+    <string name="about">关于</string>
+
+    <string name="all_songs">所有歌曲</string>
+    <string name="albums">专辑</string>
+    <string name="artists">艺术家</string>
+    <string name="folders">文件夹</string>
+    <string name="playlists">播放列表</string>
+    <string name="recently_added">最近添加</string>
+
+    <string name="action_pause">暂停</string>
+    <string name="action_play">播放</string>
+
+    <string name="greeting_morning">早上好，%s</string>
+    <string name="greeting_noon">午安，%s</string>
+    <string name="greeting_afternoon">下午好，%s</string>
+    <string name="greeting_evening">晚上好，%s</string>
+    <string name="greeting_night">晚安，%s</string>
+    <string name="greeting_dawn">夜深了，%s</string>
+    <string name="greeting_default">你好，%s</string>
+
+    <string name="notification_player_channel_group_name">播放器</string>
+    <string name="notification_player_channel_name">播放器通知</string>
+    <string name="notification_player_channel_desc">
+       通知中包含播放器通知及其控制按钮
+    </string>
+
+    <string name="tile_player_name">快捷播放</string>
+
 </resources>

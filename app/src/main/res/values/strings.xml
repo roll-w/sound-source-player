@@ -21,7 +21,37 @@
         Copyright (C) 2024 RollW.\nDevelopment version
     </string>
     <string name="close">Close</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
     <string name="search">Search</string>
     <string name="setting">Setting</string>
     <string name="media_store">Media Store</string>
+
+    <string name="about">About</string>
+
+    <string name="all_songs">All Songs</string>
+    <string name="albums">Albums</string>
+    <string name="artists">Artists</string>
+    <string name="folders">Folders</string>
+    <string name="playlists">Playlists</string>
+    <string name="recently_added">Recently Added</string>
+
+    <string name="action_pause">Pause</string>
+    <string name="action_play">Play</string>
+
+    <string name="greeting_morning">Good morning, %s</string>
+    <string name="greeting_noon">Wish you a good day, %s</string>
+    <string name="greeting_afternoon">Good afternoon, %s</string>
+    <string name="greeting_evening">Good evening, %s</string>
+    <string name="greeting_night">Good night, %s</string>
+    <string name="greeting_dawn">It\'s late at night, %s</string>
+    <string name="greeting_default">Hello, %s</string>
+
+    <string name="notification_player_channel_group_name">Player</string>
+    <string name="notification_player_channel_name">Player Notification</string>
+    <string name="notification_player_channel_desc">
+        The notification contains player notification and its control buttons
+    </string>
+
+    <string name="tile_player_name">Quick Play</string>
 </resources>
