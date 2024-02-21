@@ -20,21 +20,35 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
+import tech.rollw.player.audio.Audio
+import tech.rollw.player.audio.AudioPath
+import tech.rollw.player.audio.PlaybackData
+import tech.rollw.player.data.database.dao.AudioDao
+import tech.rollw.player.data.database.dao.AudioPathDao
 import kotlin.concurrent.Volatile
 
 /**
  * @author RollW
  */
 @Database(
+    entities = [
+        Audio::class,
+        AudioPath::class,
+        PlaybackData::class,
+    ],
     version = 1
 )
 abstract class PlayerDatabase : RoomDatabase() {
+
+    abstract fun getAudioDao(): AudioDao
+
+    abstract fun getAudioPathDao(): AudioPathDao
 
     companion object {
         @Volatile
         private var INSTANCE: PlayerDatabase? = null
 
-        const val DATABASE_NAME = "player_database"
+        private const val DATABASE_NAME = "player_database"
 
         fun getDatabase(context: Context): PlayerDatabase {
             if (INSTANCE == null) {
