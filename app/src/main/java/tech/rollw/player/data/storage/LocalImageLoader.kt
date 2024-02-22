@@ -68,8 +68,6 @@ class LocalImageLoader(
             audioFormatType = audioFormatType,
             readonly = true
         )
-        Log.d(TAG, "Load artwork from audio file: $contentPath with fd=$fd")
-
         return tag.getArtwork()
     }
 
