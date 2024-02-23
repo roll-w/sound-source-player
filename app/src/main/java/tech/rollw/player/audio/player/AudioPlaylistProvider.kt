@@ -35,7 +35,7 @@ import tech.rollw.player.audio.list.Playlist
  * @author RollW
  */
 interface AudioPlaylistProvider {
-    val position: Int
+    val index: Int
 
     val current: AudioContent?
 
@@ -43,13 +43,15 @@ interface AudioPlaylistProvider {
 
     val playlistInfo: Playlist
 
-    fun setPosition(position: Int,
-                    extras: Bundle? = null)
+    fun setIndex(
+        index: Int,
+        extras: Bundle? = null
+    )
 
     fun setPlaylist(
         playlist: List<AudioContent>,
         playlistInfo: Playlist,
-        position: Int = 0,
+        index: Int = 0,
         extras: Bundle? = null
     )
 
@@ -61,14 +63,14 @@ interface AudioPlaylistProvider {
         fun onPlaylistChanged(
             playlist: List<AudioContent>,
             playlistInfo: Playlist,
-            position: Int,
+            index: Int,
             extras: Bundle?
         ) {
         }
 
         fun onPlaylistItemChanged(
             audio: AudioContent,
-            position: Int,
+            index: Int,
             extras: Bundle?
         ) {
         }
@@ -88,7 +90,7 @@ fun AudioPlaylistProvider.resetEmptyPlaylist(extras: Bundle? = null) {
     setPlaylist(
         playlist = emptyList(),
         playlistInfo = Playlist.EMPTY,
-        position = 0,
+        index = 0,
         extras = extras
     )
 }

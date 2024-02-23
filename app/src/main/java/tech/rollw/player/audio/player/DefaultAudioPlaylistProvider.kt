@@ -24,10 +24,10 @@ import tech.rollw.player.audio.list.Playlist
  * @author RollW
  */
 class DefaultAudioPlaylistProvider : AudioPlaylistProvider {
-    private var positionInternal: Int = 0
+    private var indexInternal: Int = 0
 
-    override val position: Int
-        get() = positionInternal
+    override val index: Int
+        get() = indexInternal
 
     private var _playlist: List<AudioContent> = emptyList()
     private var _playlistInfo: Playlist = Playlist.EMPTY
@@ -37,7 +37,7 @@ class DefaultAudioPlaylistProvider : AudioPlaylistProvider {
             if (playlist.isEmpty()) {
                 return null
             }
-            return playlist[position]
+            return playlist[index]
         }
 
     override val playlist: List<AudioContent>
@@ -46,11 +46,11 @@ class DefaultAudioPlaylistProvider : AudioPlaylistProvider {
     override val playlistInfo: Playlist
         get() = _playlistInfo
 
-    override fun setPosition(
-        position: Int,
+    override fun setIndex(
+        index: Int,
         extras: Bundle?
     ) {
-        setPositionInternal(position, true, extras)
+        setIndexInternal(index, true, extras)
     }
 
     private val listeners = mutableListOf<AudioPlaylistProvider.OnAudioPlaylistListener>()
@@ -58,29 +58,29 @@ class DefaultAudioPlaylistProvider : AudioPlaylistProvider {
     override fun setPlaylist(
         playlist: List<AudioContent>,
         playlistInfo: Playlist,
-        position: Int,
+        index: Int,
         extras: Bundle?
     ) {
         if (anyChange(playlist, playlistInfo)) {
             this._playlist = playlist
             this._playlistInfo = playlistInfo
-            setPositionInternal(position, false)
+            setIndexInternal(index, false)
             listeners.forEach {
-                it.onPlaylistChanged(playlist, playlistInfo, position, extras)
+                it.onPlaylistChanged(playlist, playlistInfo, index, extras)
             }
             return
         }
-        if (positionInternal == position) {
+        if (indexInternal == index) {
             return
         }
-        setPositionInternal(position, true, extras)
+        setIndexInternal(index, true, extras)
     }
 
     private fun anyChange(
         playlist: List<AudioContent>,
         playlistInfo: Playlist
     ): Boolean {
-        return this.playlist != playlist || this.playlistInfo != playlistInfo
+        return this.playlistInfo != playlistInfo || this.playlist != playlist
     }
 
     override fun addOnAudioPlaylistListener(
@@ -96,24 +96,24 @@ class DefaultAudioPlaylistProvider : AudioPlaylistProvider {
     }
 
     @Throws(IndexOutOfBoundsException::class)
-    private fun setPositionInternal(
-        position: Int,
+    private fun setIndexInternal(
+        index: Int,
         notify: Boolean = true,
         extras: Bundle? = null
     ) {
-        if (positionInternal == position) {
+        if (indexInternal == index) {
             return
-        } else if (position < 0 ||
-            (position >= playlist.size && playlist.isNotEmpty())
+        } else if (index < 0 ||
+            (index >= playlist.size && playlist.isNotEmpty())
         ) {
-            throw IndexOutOfBoundsException("Got position: $position, but playlist size: ${playlist.size}.")
+            throw IndexOutOfBoundsException("Got position: $index, but playlist size: ${playlist.size}.")
         }
-        positionInternal = position
+        indexInternal = index
         if (!notify) {
             return
         }
         listeners.forEach {
-            it.onPlaylistItemChanged(playlist[position], position, extras)
+            it.onPlaylistItemChanged(playlist[index], index, extras)
         }
     }
 }

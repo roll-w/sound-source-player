@@ -34,7 +34,7 @@ import tech.rollw.player.audio.toMediaItem
  * foreground, and automatically switch to the next or previous
  * audio when the current media item is ended. Which means the
  * activity or fragment should not call methods such as [Player.seekToNext],
- * they only need to change the [AudioPlaylistProvider.position].
+ * they only need to change the [AudioPlaylistProvider.index].
  *
  * This delegate player will also override some methods of the
  * [player] implementation, such as [Player.seekToNext],
@@ -81,25 +81,25 @@ class AudioPlaylistDelegatePlayer(
 
 
     override fun hasNextMediaItem(): Boolean {
-        return audioPlaylistProvider.position + 1 <
+        return audioPlaylistProvider.index + 1 <
                 audioPlaylistProvider.playlist.size
     }
 
     override fun hasPreviousMediaItem(): Boolean {
-        return audioPlaylistProvider.position - 1 >= 0
+        return audioPlaylistProvider.index - 1 >= 0
     }
 
     override fun seekToNextMediaItem() = seekToNext()
 
     override fun seekToNext() {
-        if (audioPlaylistProvider.position + 1 >=
+        if (audioPlaylistProvider.index + 1 >=
             audioPlaylistProvider.playlist.size
         ) {
             return
         }
         val playingState = player.isPlaying
-        audioPlaylistProvider.setPosition(
-            audioPlaylistProvider.position + 1,
+        audioPlaylistProvider.setIndex(
+            audioPlaylistProvider.index + 1,
             identifier
         )
 
@@ -111,12 +111,12 @@ class AudioPlaylistDelegatePlayer(
     override fun seekToPreviousMediaItem() = seekToPrevious()
 
     override fun seekToPrevious() {
-        if (audioPlaylistProvider.position - 1 < 0) {
+        if (audioPlaylistProvider.index - 1 < 0) {
             return
         }
         val playingState = player.isPlaying
-        audioPlaylistProvider.setPosition(
-            audioPlaylistProvider.position - 1,
+        audioPlaylistProvider.setIndex(
+            audioPlaylistProvider.index - 1,
             identifier
         )
 
@@ -160,7 +160,7 @@ class AudioPlaylistDelegatePlayer(
     override fun onPlaylistChanged(
         playlist: List<AudioContent>,
         playlistInfo: Playlist,
-        position: Int,
+        index: Int,
         extras: Bundle?
     ) {
         if (playlist.isEmpty()) {
@@ -168,12 +168,12 @@ class AudioPlaylistDelegatePlayer(
         }
         val playingState = extras?.getBoolean(EXTRA_PLAY, isPlaying)
             ?: isPlaying
-        setAudioAndPlay(playlist[position], playingState)
+        setAudioAndPlay(playlist[index], playingState)
     }
 
     override fun onPlaylistItemChanged(
         audio: AudioContent,
-        position: Int,
+        index: Int,
         extras: Bundle?
     ) {
         if (extras == identifier ||
