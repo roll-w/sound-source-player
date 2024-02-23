@@ -17,9 +17,13 @@
 package tech.rollw.player.data.setting
 
 /**
+ * The key of a setting.
+ *
+ * @see SettingType
  * @author RollW
  */
-data class SettingItem<T, V>(
-    val key: SettingKey<T, V>,
-    val value: T?
-)
+data class SettingKey<T, V>(
+    val key: String,
+    val type: SettingType<T, V>
+) {
+}

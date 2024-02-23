@@ -17,13 +17,20 @@
 package tech.rollw.player.data.setting
 
 /**
+ * Setting type.
+ *
+ * @param T the type that will be stored
+ * @param V if the type is a collection, the type of the elements in the collection
  * @author RollW
  */
-enum class SettingType {
-    STRING,
-    INT,
-    LONG,
-    FLOAT,
-    BOOLEAN,
-    STRING_SET,
+class SettingType<T, V> private constructor() {
+    companion object {
+        val STRING = SettingType<String, String>()
+        val INT = SettingType<Int, Int>()
+        val LONG = SettingType<Long, Long>()
+        val FLOAT = SettingType<Float, Float>()
+        val DOUBLE = SettingType<Double, Double>()
+        val BOOLEAN = SettingType<Boolean, Boolean>()
+        val STRING_SET = SettingType<Set<String>, String>()
+    }
 }
