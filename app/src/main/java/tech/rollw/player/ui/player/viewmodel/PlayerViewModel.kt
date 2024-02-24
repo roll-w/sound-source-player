@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 
-package tech.rollw.player.ui.player
+package tech.rollw.player.ui.player.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 /**
+ * Player view model. It provides the state of the player.
+ *
  * @author RollW
  */
-class PlayerScreenViewModel(
-    private val application: Application
-) : AndroidViewModel(application) {
-    private val _scrollOffset = MutableStateFlow(0)
+interface PlayerViewModel {
+    val playing: StateFlow<Boolean>
 
     /**
-     * Current scroll offset of the screen
+     * Current audio position in milliseconds.
      */
-    val scrollOffset: StateFlow<Int> = _scrollOffset
+    val audioPosition: StateFlow<Long>
 
     /**
-     * Set current scroll offset
+     * Set the playing state of the player.
      *
-     * @see scrollOffset
+     * Note: it has no effect on player.
      */
-    fun setScrollOffset(offset: Int) {
-        viewModelScope.launch {
-            _scrollOffset.value = offset
-        }
-    }
+    fun setPlaying(playing: Boolean)
+
+    /**
+     * Set the audio position in milliseconds.
+     *
+     * Note: it has no effect on player.
+     */
+    fun setAudioPosition(position: Long)
 }
