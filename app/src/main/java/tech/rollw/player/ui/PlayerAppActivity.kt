@@ -19,8 +19,34 @@ package tech.rollw.player.ui
 import android.os.Bundle
 import tech.rollw.support.appcompat.AppActivity
 
-abstract class PlayerAppActivity : AppActivity() {
+abstract class PlayerAppActivity :
+    AppActivity(),
+    MediaControllerDelegate.OnMediaControllerStateChangeListener {
+
+    private val mediaControllerDelegate: MediaControllerDelegate by lazy {
+        MediaControllerDelegate(this).also {
+            it.addOnMediaControllerStateChangeListener(this)
+        }
+    }
+
+    val mediaController get() = mediaControllerDelegate.mediaController
+
+    @MediaControllerDelegate.State
+    val mediaControllerState = mediaControllerDelegate.state
+
+    fun isConnected() = mediaControllerDelegate.isConnected()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        mediaControllerDelegate.create()
+
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaControllerDelegate.close()
+    }
+
+    override fun onStateChanged(state: Int) {
     }
 }
