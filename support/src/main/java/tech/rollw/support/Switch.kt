@@ -23,5 +23,11 @@ enum class Switch {
     ON,
     OFF,
     AUTO,
-    NONE
+    NONE;
+
+    companion object {
+        fun of(value: Boolean): Switch = if (value) ON else OFF
+    }
 }
+
+fun Boolean.toSwitch(): Switch = Switch.of(this)
