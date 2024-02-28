@@ -28,7 +28,10 @@ public final class ToastUtil {
             TOAST.cancel();
         }
 
-        TOAST = Toast.makeText(context, s, Toast.LENGTH_SHORT);
+        TOAST = Toast.makeText(
+                context.getApplicationContext(),
+                s, Toast.LENGTH_SHORT
+        );
         TOAST.show();
     }
 
@@ -41,7 +44,10 @@ public final class ToastUtil {
             TOAST.cancel();
         }
 
-        TOAST = Toast.makeText(context, s, Toast.LENGTH_LONG);
+        TOAST = Toast.makeText(
+                context.getApplicationContext(),
+                s, Toast.LENGTH_LONG
+        );
         TOAST.show();
     }
 
