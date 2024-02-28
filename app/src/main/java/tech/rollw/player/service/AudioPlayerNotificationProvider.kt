@@ -97,14 +97,12 @@ class AudioPlayerNotificationProvider(
         val mediaCover = loadCover(audioContent.path)
 
         val notificationBuilder = NotificationCompat.Builder(
-            context, AudioPlayerSessionService.NOTIFICATION_CHANNEL_ID
+            context, AudioPlayerSessionService.CHANNEL_CONFIG.id
         ).setSmallIcon(R.drawable.ic_icon)
             .setContentTitle(audioContent.audio.title)
             .setContentText("${audioContent.audio.artist} - ${audioContent.audio.album}")
             .setContentIntent(startActivityIntent)
             .setLargeIcon(mediaCover)
-            .setGroup(AudioPlayerSessionService.NOTIFICATION_GROUP_ID)
-            .setGroupSummary(true)
             .setShowWhen(false)
             .setAutoCancel(false)
             .setVisibility(getNotificationVisibility())
