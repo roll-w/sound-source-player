@@ -35,6 +35,7 @@ fun guessFileType(extension: String): FileType {
         "mp4", "mkv", "avi", "mov", "wmv" -> FileType.VIDEO
         "jpg", "jpeg", "png", "gif", "webp" -> FileType.IMAGE
         "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx" -> FileType.DOCUMENT
+        "apk" -> FileType.APK
         else -> FileType.OTHER
     }
 }
@@ -44,3 +45,18 @@ fun File.fileType() = guessFileType(extension)
 fun String.fileType() = guessFileType(
     substringAfterLast('.', "")
 )
+
+fun Long.formatSize(reserveDigits: Int = 3): String {
+    if (this == 0L) {
+        return "0 B"
+    }
+
+    val size = this.toFloat()
+    val decimalFormat = "%.${reserveDigits}f"
+    return when {
+        size < 1024 -> "$decimalFormat B".format(size)
+        size < 1024 * 1024 -> "$decimalFormat KB".format(size / 1024)
+        size < 1024 * 1024 * 1024 -> "$decimalFormat MB".format(size / 1024 / 1024)
+        else -> "$decimalFormat GB".format(size / 1024 / 1024 / 1024)
+    }
+}

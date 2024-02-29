@@ -26,6 +26,7 @@ enum class FileType {
     VIDEO,
     IMAGE,
     DOCUMENT,
+    APK,
     OTHER,
     ;
 }
