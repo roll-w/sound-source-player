@@ -20,7 +20,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.util.Log
-import android.view.View
 import android.view.WindowManager
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
@@ -88,11 +87,9 @@ abstract class AppActivity : AppCompatActivity() {
                 AppCompatDelegate.MODE_NIGHT_NO
             )
 
-            Switch.AUTO -> AppCompatDelegate.setDefaultNightMode(
+            else -> AppCompatDelegate.setDefaultNightMode(
                 AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             )
-
-            else -> {}
         }
     }
 
@@ -100,14 +97,10 @@ abstract class AppActivity : AppCompatActivity() {
         const val COLOR_DEFAULT = -1
     }
 
-    protected fun setViewStatusBarHeight(view: View) {
-        view.layoutParams.height = getStatusBarHeight()
-    }
-
     protected fun setNavigationBar(
         @ColorInt colorBackground: Int = COLOR_DEFAULT,
         fullScreen: Boolean = false,
-        lightStatusBar: Switch = Switch.AUTO
+        lightBar: Switch = Switch.AUTO
     ) {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         WindowCompat.setDecorFitsSystemWindows(window, fullScreen)
@@ -117,7 +110,7 @@ abstract class AppActivity : AppCompatActivity() {
         }
 
         WindowCompat.getInsetsController(window, window.decorView).apply {
-            setLightBars(colorBackground, lightStatusBar)
+            setLightBars(colorBackground, lightBar)
 
             if (fullScreen) {
                 hide(WindowInsetsCompat.Type.navigationBars())
@@ -128,7 +121,7 @@ abstract class AppActivity : AppCompatActivity() {
     protected fun setStatusBar(
         @ColorInt colorBackground: Int = COLOR_DEFAULT,
         fullScreen: Boolean = false,
-        lightStatusBar: Switch = Switch.AUTO
+        lightBar: Switch = Switch.AUTO
     ) {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         WindowCompat.setDecorFitsSystemWindows(window, fullScreen)
@@ -137,7 +130,7 @@ abstract class AppActivity : AppCompatActivity() {
         }
 
         WindowCompat.getInsetsController(window, window.decorView).apply {
-            setLightBars(colorBackground, lightStatusBar)
+            setLightBars(colorBackground, lightBar)
             if (fullScreen) {
                 hide(WindowInsetsCompat.Type.statusBars())
             }
@@ -180,7 +173,7 @@ abstract class AppActivity : AppCompatActivity() {
         }
     }
 
-    fun getActualNavigationBarHeight(): Int {
+    fun getNavigationBarHeight(): Int {
         val compat = WindowInsetsCompat.toWindowInsetsCompat(
             window.decorView.rootWindowInsets, window.decorView
         )
@@ -188,18 +181,6 @@ abstract class AppActivity : AppCompatActivity() {
             WindowInsetsCompat.Type.navigationBars()
         )
         return barInsets.bottom - barInsets.top
-    }
-
-    fun getNavigationBarHeight(): Int {
-        val resourceId = resources.getIdentifier(
-            "navigation_bar_height", "dimen",
-            "android"
-        )
-        return if (resourceId > 0) {
-            resources.getDimensionPixelSize(resourceId)
-        } else {
-            0
-        }
     }
 
     private val activityResultLauncherMap: MutableMap<Class<out ActivityResultContract<*, *>?>,
