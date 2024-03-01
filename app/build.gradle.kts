@@ -24,6 +24,8 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
 }
 
+val dimensionAbi = "abi"
+
 android {
     namespace = "tech.rollw.player"
     compileSdk = 34
@@ -82,14 +84,16 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isDebuggable = false
             signingConfig = signingConfigs["default"]
         }
         debug {
+            applicationIdSuffix = ".debug"
             isMinifyEnabled = false
-            signingConfig = signingConfigs["default"]
+            isDebuggable = true
         }
     }
-    flavorDimensions += "abi"
+    flavorDimensions += dimensionAbi
     productFlavors {
         fun createByAbi(
             name: String,
