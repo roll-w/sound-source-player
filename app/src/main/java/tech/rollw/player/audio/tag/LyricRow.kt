@@ -76,6 +76,23 @@ class LyricRow(
 
     companion object {
         const val INVALID_TIMESTAMP = -1L
+
+        fun List<LyricRow>.findAt(timestamp: Long): Int {
+            var low = 0
+            var high = size - 1
+            while (low <= high) {
+                val mid = (low + high) ushr 1
+                val midVal = this[mid].timestamp
+                if (midVal < timestamp) {
+                    low = mid + 1
+                } else if (midVal > timestamp) {
+                    high = mid - 1
+                } else {
+                    return mid
+                }
+            }
+            return high
+        }
     }
 
 }
