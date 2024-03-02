@@ -15,6 +15,7 @@
  */
 
 import com.android.build.api.dsl.ApplicationProductFlavor
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 import java.util.*
 
 plugins {
@@ -35,13 +36,15 @@ android {
         applicationId = "tech.rollw.player"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "0.1.2.R"
+        versionCode = 5
+        versionName = "0.1.4.R"
 
+        archivesName.set("${applicationId}-${versionName}")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
                 cppFlags += ""
+                arguments += "-DANDROID_STL=c++_shared"
             }
         }
         val filesAuthorityValue = "$applicationId.FileProvider"
@@ -101,7 +104,7 @@ android {
         ): ApplicationProductFlavor {
             return this.create(name) {
                 buildConfigField("String", "ABI", "\"$name\"")
-                dimension = "abi"
+                dimension = dimensionAbi
                 ndk {
                     abiFilters += abis
                 }
@@ -146,9 +149,10 @@ android {
         viewBinding = true
         dataBinding = true
         compose = true
+        prefab = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
+        kotlinCompilerExtensionVersion = "1.5.10"
     }
     packaging {
         resources {
@@ -160,77 +164,40 @@ android {
 
 dependencies {
     implementation(project(":support"))
+    implementation(project(":ui"))
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation(libs.bundles.androidx.appcompat)
+    implementation(libs.bundles.androidx.core)
 
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.browser:browser:1.7.0")
-    implementation("androidx.activity:activity-ktx:1.8.2")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
-    implementation("androidx.window:window:1.2.0")
+    implementation(libs.material)
+    implementation(libs.androidx.browser)
+    implementation(libs.androidx.preference.ktx)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.palette.ktx)
 
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.transition:transition-ktx:1.4.1")
-    implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation(libs.bundles.androidx.compose)
+    implementation(libs.bundles.androidx.work)
+    implementation(libs.bundles.androidx.lifecycle)
+    implementation(libs.bundles.androidx.media3)
+    implementation(libs.bundles.androidx.navigation)
+    implementation(libs.bundles.androidx.room)
 
-    implementation("androidx.activity:activity-compose:1.8.2")
-    implementation(platform("androidx.compose:compose-bom:2024.01.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+    ksp(libs.androidx.room.compiler)
 
-    val lifeCycleVersion = "2.7.0"
-    val navigationVersion = "2.7.7"
-    val roomVersion = "2.6.1"
-    val workVersion = "2.9.0"
-    val media3Version = "1.2.1"
+    implementation(libs.oboe)
 
-    implementation("androidx.palette:palette-ktx:1.0.0")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifeCycleVersion")
-    implementation("androidx.lifecycle:lifecycle-livedata-core-ktx:$lifeCycleVersion")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifeCycleVersion")
-    implementation("androidx.lifecycle:lifecycle-service:$lifeCycleVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifeCycleVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifeCycleVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifeCycleVersion")
+    implementation(libs.fiesta.annotations)
+    compileOnly(libs.fiesta.checker)
 
-    implementation("androidx.media3:media3-session:$media3Version")
-    implementation("androidx.media3:media3-exoplayer:$media3Version")
-
-    implementation("androidx.navigation:navigation-ui-ktx:$navigationVersion")
-    implementation("androidx.navigation:navigation-fragment-ktx:$navigationVersion")
-    implementation("androidx.navigation:navigation-compose:$navigationVersion")
-
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
-    implementation("androidx.room:room-guava:$roomVersion")
-
-    implementation("androidx.work:work-runtime:$workVersion")
-    implementation("androidx.work:work-runtime-ktx:$workVersion")
-
-    implementation("com.google.oboe:oboe:1.8.1")
-
-    implementation("space.lingu.fiesta:fiesta-annotations:0.2.0")
-    compileOnly("space.lingu.fiesta:fiesta-checker:0.2.0")
-
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.coil.compose)
 
     debugImplementation("com.guolindev.glance:glance:1.1.0")
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.bundles.androidx.test)
 
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.01.00"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
