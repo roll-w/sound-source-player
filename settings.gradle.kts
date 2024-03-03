@@ -32,3 +32,4 @@ dependencyResolutionManagement {
 rootProject.name = "Sound Source"
 include(":app")
 include(":support")
+include(":ui")

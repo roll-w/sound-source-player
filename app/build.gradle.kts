@@ -152,7 +152,8 @@ android {
         prefab = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.10"
+        kotlinCompilerExtensionVersion =
+            libs.versions.androidx.compose.compiler.get()
     }
     packaging {
         resources {

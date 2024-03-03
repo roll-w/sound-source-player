@@ -23,6 +23,7 @@ androidx-work = "2.9.0"
 androidx-navigation = "2.7.7"
 androidx-compose = "1.6.2"
 androidx-compose-material3 = "1.2.0"
+androidx-compose-compiler = "1.5.10"
 
 material = "1.11.0"
 desugar_jdk_libs = "2.0.4"
