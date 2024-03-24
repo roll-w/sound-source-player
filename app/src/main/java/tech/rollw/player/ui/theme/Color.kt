@@ -16,27 +16,11 @@
 
 package tech.rollw.player.ui.theme
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /**
  * @author RollW
  */
-@Immutable
-data class PlayerColors(
-    // TODO: PlayerColors
-    val primary: Color
-)
-
-val DefaultPlayerColor = PlayerColors(
-    primary = Color(0xFFEE6B13),
-)
-
-val LocalPlayerColors = staticCompositionLocalOf {
-    DefaultPlayerColor
-}
-
 // TODO: may change some of colors later
 val primaryLight = Color(0xFFEE6B13)
 val onPrimaryLight = Color(0xFFFFFFFF)

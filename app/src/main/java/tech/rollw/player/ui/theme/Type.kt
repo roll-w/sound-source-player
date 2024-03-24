@@ -16,58 +16,6 @@
 
 package tech.rollw.player.ui.theme
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-
 /**
  * @author RollW
  */
-@Immutable
-data class PlayerTypography(
-    // TODO: add more styles
-    val bodyLarge: TextStyle = PlayerTypographyDefaults.BodyLarge,
-    val titleLarge: TextStyle = PlayerTypographyDefaults.TitleLarge,
-    val labelSmall: TextStyle = PlayerTypographyDefaults.LabelSmall,
-    val code: TextStyle = PlayerTypographyDefaults.CodeStyle
-)
-
-private object PlayerTypographyDefaults {
-    val BodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-    val TitleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
-    )
-    val LabelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
-    )
-    val CodeStyle = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.sp
-    )
-}
-
-val DefaultTypography = PlayerTypography()
-
-val LocalPlayerTypography = staticCompositionLocalOf {
-    DefaultTypography
-}

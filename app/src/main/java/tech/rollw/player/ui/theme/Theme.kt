@@ -18,39 +18,20 @@ package tech.rollw.player.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import tech.rollw.player.ui.PlayerTheme
 
 /**
  * @author RollW
  */
-
-object PlayerTheme {
-    // TODO: color and shape system
-    val typography: PlayerTypography
-        @Composable
-        get() = LocalPlayerTypography.current
-
-    val colors: PlayerColors
-        @Composable
-        get() = LocalPlayerColors.current
-}
-
-@Composable
-fun PlayerTheme(
-    typography: PlayerTypography = PlayerTheme.typography,
-    content: @Composable () -> Unit
-) {
-    CompositionLocalProvider(
-        LocalPlayerTypography provides typography,
-        content = content
-    )
-}
-
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
