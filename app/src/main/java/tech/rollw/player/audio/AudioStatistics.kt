@@ -21,12 +21,12 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * The playback data of an [Audio].
+ * The statistics of an [Audio].
  *
  * @author RollW
  */
-@Entity(tableName = "playback_data")
-data class PlaybackData(
+@Entity(tableName = "audio_statistics")
+data class AudioStatistics(
     /**
      * Refer to [Audio.id].
      */
