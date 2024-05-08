@@ -19,6 +19,13 @@ package tech.rollw.player.data.setting
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 
 /**
@@ -42,3 +49,41 @@ val Context.preferenceDataStore: PlayerPreferenceDataStore
         }
         return pDataStore!!
     }
+
+fun SettingKey<*, *>.asPreferencesKey(): Preferences.Key<*> = when (type) {
+    SettingType.STRING -> stringPreferencesKey(key)
+    SettingType.INT -> intPreferencesKey(key)
+    SettingType.LONG -> longPreferencesKey(key)
+    SettingType.FLOAT -> floatPreferencesKey(key)
+    SettingType.DOUBLE -> doublePreferencesKey(key)
+    SettingType.BOOLEAN -> booleanPreferencesKey(key)
+    SettingType.STRING_SET -> stringSetPreferencesKey(key)
+    else -> {
+        throw IllegalArgumentException("Unsupported type: $type")
+    }
+}
+
+inline fun <reified T> Preferences.Key<T>.asSettingKey() = when (T::class) {
+    String::class -> SettingKey(name, SettingType.STRING)
+    Int::class -> SettingKey(name, SettingType.INT)
+    Long::class -> SettingKey(name, SettingType.LONG)
+    Float::class -> SettingKey(name, SettingType.FLOAT)
+    Double::class -> SettingKey(name, SettingType.DOUBLE)
+    Boolean::class -> SettingKey(name, SettingType.BOOLEAN)
+    Set::class -> SettingKey(name, SettingType.STRING_SET)
+    else -> throw IllegalArgumentException("Unsupported type: ${T::class}")
+}
+
+fun Preferences.Key<*>.toSettingKey(type: SettingType<*, *>): SettingKey<*, *> = when (type) {
+    SettingType.STRING,
+    SettingType.INT,
+    SettingType.LONG,
+    SettingType.FLOAT,
+    SettingType.DOUBLE,
+    SettingType.BOOLEAN,
+    SettingType.STRING_SET -> SettingKey(name, type)
+
+    else -> {
+        throw IllegalArgumentException("Unsupported type: $type")
+    }
+}
