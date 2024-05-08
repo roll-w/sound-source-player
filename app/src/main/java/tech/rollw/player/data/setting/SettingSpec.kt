@@ -92,5 +92,12 @@ data class SettingSpec<T, V>(
             default,
             valueEntries.toList()
         )
+
+        fun boolean(key: String, default: Boolean = false) = SettingSpec(
+            SettingKey(key, SettingType.BOOLEAN),
+            if (default) 1 else 0,
+            false,
+            true
+        )
     }
 }

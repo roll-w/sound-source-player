@@ -32,5 +32,16 @@ class SettingType<T, V> private constructor() {
         val DOUBLE = SettingType<Double, Double>()
         val BOOLEAN = SettingType<Boolean, Boolean>()
         val STRING_SET = SettingType<Set<String>, String>()
+
+        fun of(value: Any): SettingType<*, *> = when (value) {
+            is String -> STRING
+            is Int -> INT
+            is Long -> LONG
+            is Float -> FLOAT
+            is Double -> DOUBLE
+            is Boolean -> BOOLEAN
+            is Set<*> -> STRING_SET
+            else -> throw IllegalArgumentException("Unsupported type: ${value::class.java}")
+        }
     }
 }
