@@ -23,6 +23,7 @@
     <string name="close">Close</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="skip">Skip</string>
     <string name="search">Search</string>
     <string name="setting">Setting</string>
     <string name="media_store">Media Store</string>
@@ -54,4 +55,15 @@
     </string>
 
     <string name="tile_player_name">Quick Play</string>
+
+    <string name="notification_worker_channel_name">
+        Background Tasks Notification
+    </string>
+    <string name="notification_worker_channel_desc">
+        The notification provides information about running
+        background tasks and its progress.
+    </string>
+    <string name="task_audio_scan_title">Audio Files Scanning</string>
+    <string name="task_audio_scan_description">Now scanning audio files, please wait</string>
+    <string name="task_audio_scan_success">Audio files scanned successfully in %s seconds</string>
 </resources>
