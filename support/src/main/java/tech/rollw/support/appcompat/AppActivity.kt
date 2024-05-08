@@ -16,7 +16,10 @@
 
 package tech.rollw.support.appcompat
 
+import android.app.ActivityManager
+import android.app.ActivityManager.AppTask
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.util.Log
@@ -28,6 +31,7 @@ import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
+import androidx.core.content.getSystemService
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -95,6 +99,34 @@ abstract class AppActivity : AppCompatActivity() {
 
     companion object {
         const val COLOR_DEFAULT = -1
+
+        fun Context.getOrCreateActivityIntent(activity: Class<*>): Intent {
+            val activityManager = getSystemService<ActivityManager>()
+                ?: return Intent(this, activity)
+
+            val appTasks = activityManager.appTasks
+            for (appTask: AppTask in appTasks) {
+                if (appTask.taskInfo.baseActivity == null) {
+                    continue
+                }
+                if (appTask.taskInfo.baseActivity!!.className
+                    == activity.canonicalName
+                ) {
+                    val resultIntent = Intent(
+                        this,
+                        Class.forName(appTask.taskInfo.topActivity!!.className)
+                    )
+                    resultIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                                or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                    )
+                    return resultIntent
+                }
+            }
+
+            return Intent(this, activity)
+        }
     }
 
     protected fun setNavigationBar(
