@@ -73,6 +73,11 @@
                 android:theme="@style/Theme.Player">
         </activity>
         <activity
+                android:name=".ui.player.SetupActivity"
+                android:exported="false"
+                android:theme="@style/Theme.Player">
+        </activity>
+        <activity
                 android:name=".ui.player.MainActivity"
                 android:exported="false"
                 android:theme="@style/Theme.Player">

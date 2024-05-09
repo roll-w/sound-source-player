@@ -13,9 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
+<!DOCTYPE resources [
+        <!ENTITY appName "Sound Source">
+        ]>
 <resources>
-    <string name="app_name">Sound Source</string>
+    <string name="app_name">&appName;</string>
 
     <string name="splash_copyright" translatable="false">
         Copyright (C) 2024 RollW.\nDevelopment version
@@ -24,6 +26,11 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="skip">Skip</string>
+    <string name="back">Back</string>
+    <!-- to avoid reserved keyword, add prefix 's' -->
+    <string name="scontinue">Continue</string>
+    <string name="complete">Complete</string>
+    <string name="allow">Allow</string>
     <string name="search">Search</string>
     <string name="setting">Setting</string>
     <string name="media_store">Media Store</string>
@@ -66,4 +73,19 @@
     <string name="task_audio_scan_title">Audio Files Scanning</string>
     <string name="task_audio_scan_description">Now scanning audio files, please wait</string>
     <string name="task_audio_scan_success">Audio files scanned successfully in %s seconds</string>
+
+    <string name="setup_welcome_title">Welcome to &appName;!</string>
+    <string name="setup_welcome_desc">
+        Let\'s start by setting up some things, we will guide you through the process.
+    </string>
+    <string name="setup_permission_title">Permission</string>
+    <string name="setup_permission_desc">&appName; needs some permissions to work properly.</string>
+    <string name="setup_permission_storage_title">Storage</string>
+    <string name="setup_permission_storage_desc">&appName; needs access to your storage to read music files.</string>
+    <string name="setup_permission_notification_title">Notification</string>
+    <string name="setup_permission_notification_desc">&appName; needs access to your notifications to show the current playing song.</string>
+    <string name="setup_audio_scan_title">Audio Scan</string>
+    <string name="setup_audio_scan_desc">&appName; will scan your audio files, this may take a while.</string>
+    <string name="setup_complete_title">Setup Complete! 🎉</string>
+    <string name="setup_complete_desc">You have successfully set up &appName;. Enjoy the music!</string>
 </resources>

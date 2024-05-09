@@ -13,13 +13,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
+<!DOCTYPE resources [
+        <!ENTITY appName "音源">
+        ]>
 <resources>
-    <string name="app_name">音源</string>
+    <string name="app_name">&appName;</string>
     <string name="close">关闭</string>
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>
     <string name="skip">跳过</string>
+    <string name="back">返回</string>
+    <string name="scontinue">继续</string>
+    <string name="complete">完成</string>
+    <string name="allow">允许</string>
     <string name="search">搜索</string>
     <string name="setting">设置</string>
     <string name="media_store">媒体库</string>
@@ -61,4 +67,23 @@
     <string name="task_audio_scan_title">音频文件扫描</string>
     <string name="task_audio_scan_description">正在扫描音频文件中，请稍等</string>
     <string name="task_audio_scan_success">音频文件扫描完成，耗时 %s 秒</string>
+
+    <string name="setup_welcome_title">欢迎使用&appName;！</string>
+    <string name="setup_welcome_desc">
+        让我们从配置一些设置开始，我们将引导您完成整个过程。
+    </string>
+    <string name="setup_permission_title">权限</string>
+    <string name="setup_permission_desc">&appName;需要一些权限才能正常工作。</string>
+    <string name="setup_permission_storage_title">存储</string>
+    <string name="setup_permission_storage_desc">
+        &appName;需要访问您的存储空间以扫描音频文件。
+    </string>
+    <string name="setup_permission_notification_title">通知</string>
+    <string name="setup_permission_notification_desc">
+        &appName;需要访问您的通知以显示当前播放的歌曲。
+    </string>
+    <string name="setup_audio_scan_title">音频扫描</string>
+    <string name="setup_audio_scan_desc">&appName;将扫描您的音频文件，这可能需要一些时间。</string>
+    <string name="setup_complete_title">设置完成！🎉</string>
+    <string name="setup_complete_desc">您已成功设置&appName;。尽情享受音乐吧！</string>
 </resources>
