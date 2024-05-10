@@ -17,27 +17,32 @@
 package tech.rollw.player.data.setting
 
 import android.content.Context
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /**
+ * A delegate for setting value.
+ *
  * @author RollW
  */
 class SettingValue<T, V>(
-    private val spec: SettingSpec<T, V>,
+    val spec: SettingSpec<T, V>,
     private val context: Context,
+
     /**
      * If true, the value can be any value, otherwise,
      * the value must be one of the allowed values in
      * [SettingSpec.valueEntries]
      */
-    private val allowAnyValue: Boolean = false
+    private val allowAnyValue: Boolean = spec.allowAnyValue()
 ) : ReadWriteProperty<Any?, T?> {
     override fun getValue(
         thisRef: Any?,
         property: KProperty<*>
     ): T? {
-        return context.preferenceDataStore.getValue(spec)
+        return getSettingValue()
     }
 
     override fun setValue(
@@ -45,8 +50,21 @@ class SettingValue<T, V>(
         property: KProperty<*>,
         value: T?
     ) {
-        checkValueIn(value)
+        setSettingValue(value)
+    }
 
+    var value: T?
+        get() = getSettingValue()
+        set(value) {
+            setSettingValue(value)
+        }
+
+    private fun getSettingValue(): T? {
+        return context.preferenceDataStore.getValue(spec)
+    }
+
+    private fun setSettingValue(value: T?) {
+        checkValueIn(value)
         context.preferenceDataStore.setValue(spec, value)
     }
 
@@ -59,6 +77,15 @@ class SettingValue<T, V>(
         }
     }
 
+    private var _valueFlow : Flow<T?>? = null
+
+    fun asFlow() : Flow<T?> {
+        val preferenceDataStore = context.preferenceDataStore
+        if (_valueFlow == null) {
+            _valueFlow = preferenceDataStore[spec].distinctUntilChanged()
+        }
+        return _valueFlow!!
+    }
 }
 
 fun Context.settingValue(
