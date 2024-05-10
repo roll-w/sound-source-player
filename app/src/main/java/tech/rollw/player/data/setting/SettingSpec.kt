@@ -27,12 +27,19 @@ package tech.rollw.player.data.setting
  */
 data class SettingSpec<T, V>(
     val key: SettingKey<T, V>,
+
+    private val allowAnyValue: Boolean = false,
+
     /**
      * The default value indexes in [valueEntries].
      *
      * Only [SettingType.STRING_SET] type can have multiple defaults.
      */
     val defaults: List<Int> = emptyList(),
+
+    /**
+     * Leave it empty if the setting has no predefined values.
+     */
     val valueEntries: List<V> = emptyList()
 ) {
     val type = key.type
@@ -42,11 +49,42 @@ data class SettingSpec<T, V>(
         key: SettingKey<T, V>,
         default: Int,
         vararg valueEntries: V
-    ) : this(key, listOf(default), valueEntries.toList())
+    ) : this(
+        key,
+        defaults = listOf(default),
+        valueEntries = valueEntries.toList()
+    )
+
+    constructor(
+        key: SettingKey<T, V>,
+        default: V
+    ) : this(
+        key,
+        allowAnyValue = true,
+        defaults = listOf(0),
+        valueEntries = listOf(default)
+    )
+
+    constructor(
+        key: SettingKey<T, V>,
+        default: Int,
+        allowAnyValue: Boolean,
+        vararg valueEntries: V
+    ) : this(key, allowAnyValue, listOf(default), valueEntries.toList())
 
     init {
+        checkDefaults()
+    }
+
+    private fun checkDefaults() {
+        if (valueEntries.isEmpty() || defaults.isEmpty()) {
+            return
+        }
         if (defaults.size > 1 && type != SettingType.STRING_SET) {
             throw IllegalArgumentException("Only STRING_SET type can have multiple defaults")
+        }
+        if (defaults.any { it >= valueEntries.size }) {
+            throw IllegalArgumentException("Invalid default index: $defaults for ${valueEntries.size}")
         }
     }
 
@@ -55,7 +93,9 @@ data class SettingSpec<T, V>(
      */
     val defaultValue: T?
         get() {
-            if (defaults.isEmpty()) return null
+            if (defaults.isEmpty() || valueEntries.isEmpty()) {
+                return null
+            }
 
             @Suppress("UNCHECKED_CAST")
             return if (key.type == SettingType.STRING_SET) {
@@ -66,12 +106,17 @@ data class SettingSpec<T, V>(
         }
 
     operator fun get(index: Int): V? {
+        if (index >= valueEntries.size) {
+            return null
+        }
         return valueEntries[index]
     }
 
     fun hasValue(value: V?): Boolean {
         return valueEntries.contains(value)
     }
+
+    fun allowAnyValue() = valueEntries.isEmpty() || allowAnyValue
 
     @Suppress("UNCHECKED_CAST")
     fun hasValueByType(value: T?): Boolean {
@@ -89,15 +134,14 @@ data class SettingSpec<T, V>(
             vararg valueEntries: String
         ) = SettingSpec(
             SettingKey(key, SettingType.STRING_SET),
-            default,
-            valueEntries.toList()
+            defaults = default,
+            valueEntries = valueEntries.toList()
         )
 
         fun boolean(key: String, default: Boolean = false) = SettingSpec(
             SettingKey(key, SettingType.BOOLEAN),
-            if (default) 1 else 0,
-            false,
-            true
+            default = if (default) 1 else 0,
+            valueEntries = arrayOf(true, false)
         )
     }
 }
