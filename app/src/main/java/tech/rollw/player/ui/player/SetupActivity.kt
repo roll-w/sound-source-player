@@ -16,16 +16,25 @@
 
 package tech.rollw.player.ui.player
 
+import android.Manifest
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import androidx.activity.addCallback
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,45 +42,76 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import tech.rollw.player.R
 import tech.rollw.player.data.setting.AppSettings
 import tech.rollw.player.data.setting.SettingValue
+import tech.rollw.player.data.setting.UserSettings
 import tech.rollw.player.ui.ContentTypography
 import tech.rollw.player.ui.PlayerTheme
 import tech.rollw.player.ui.theme.SoundSourceTheme
+import tech.rollw.player.ui.tools.rememberSetting
 import tech.rollw.support.Switch
 import tech.rollw.support.appcompat.AppActivity
+import tech.rollw.support.net.UriUtils.getLastPath
 
 /**
  * Start if the user has not set up the app, the user will be asked to
- * set up the app (select the music folder, etc.) and then enter
- * the main interface.
+ * set up the app (select the audio folder, etc.) and then enter
+ * the [MainActivity].
  *
  * @author RollW
  */
+@Suppress("AnimatedContentLabel")
 class SetupActivity : AppActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        registerActivityLauncher(ActivityResultContracts.OpenDocumentTree())
+
         setStatusBar(colorBackground = 0, lightBar = Switch.NONE)
         setNavigationBar(colorBackground = 0, lightBar = Switch.NONE)
         val extras = intent.extras
@@ -80,7 +120,6 @@ class SetupActivity : AppActivity() {
             ?: false
 
         var appSetup by SettingValue(AppSettings.AppSetup, this)
-
 
         setContent {
             SoundSourceTheme {
@@ -102,11 +141,10 @@ class SetupActivity : AppActivity() {
     private fun startMainActivity() {
         val mainActivityIntent = getOrCreateActivityIntent(MainActivity::class.java)
         startActivity(mainActivityIntent)
-        Intent.EXTRA_INTENT
     }
 
     companion object {
-        private const val PAGER_COUNT = 4
+        private const val PAGER_COUNT = 5
 
         const val EXTRA_NAVIGATE_TO_MAIN = "tech.rollw.player.NAVIGATE_TO_MAIN"
     }
@@ -139,10 +177,8 @@ class SetupActivity : AppActivity() {
             }
         }
 
-        LaunchedEffect(Unit) {
-            onBackPressedDispatcher.addCallback(owner = this@SetupActivity) {
-                onClickPrev()
-            }
+        BackHandler {
+            onClickPrev()
         }
 
         val onClickContinue: () -> Unit = onClickContinue@{
@@ -156,49 +192,25 @@ class SetupActivity : AppActivity() {
             }
         }
 
+        val padding = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 30.dp, vertical = 40.dp)
+
+        val screens: List<@Composable (() -> Unit)> = listOf(
+            { WelcomeScreen(padding, contentTypography, onClickPrev, onClickContinue) },
+            { ProfileScreen(padding, contentTypography, onClickPrev, onClickContinue) },
+            { PermissionScreen(padding, contentTypography, onClickPrev, onClickContinue) },
+            { AudioScanScreen(padding, contentTypography, onClickPrev, onClickContinue) },
+            { EndSetupScreen(padding, contentTypography, onClickPrev, onClickContinue) }
+        )
+
         HorizontalPager(
             state = pagerState,
             modifier = modifier,
             userScrollEnabled = false,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            when (it) {
-                0 -> WelcomeScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 30.dp, vertical = 40.dp),
-                    contentTypography = contentTypography,
-                    onClickContinue = onClickContinue,
-                    onClickPrev = onClickPrev
-                )
-
-                1 -> PermissionScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 30.dp, vertical = 40.dp),
-                    contentTypography = contentTypography,
-                    onClickContinue = onClickContinue,
-                    onClickPrev = onClickPrev
-                )
-
-                2 -> AudioScanScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 30.dp, vertical = 40.dp),
-                    contentTypography = contentTypography,
-                    onClickContinue = onClickContinue,
-                    onClickPrev = onClickPrev
-                )
-
-                3 -> EndSetupScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 30.dp, vertical = 40.dp),
-                    contentTypography = contentTypography,
-                    onClickContinue = onClickContinue,
-                    onClickPrev = onClickPrev
-                )
-            }
+            screens[it]()
         }
     }
 
@@ -230,19 +242,80 @@ class SetupActivity : AppActivity() {
                     .size(200.dp)
             )
 
-            Text(
-                text = stringResource(R.string.setup_welcome_title),
-                modifier = Modifier.padding(top = 40.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.title
+            TitleWithDescription(
+                title = stringResource(R.string.setup_welcome_title),
+                description = stringResource(R.string.setup_welcome_desc),
+                contentTypography = contentTypography
+            )
+        }
+    }
+
+    /**
+     * The Profile screen allows the user to set their name.
+     */
+    @Composable
+    private fun ProfileScreen(
+        modifier: Modifier = Modifier,
+        contentTypography: ContentTypography = PlayerTheme.typography.contentNormal,
+        onClickPrev: () -> Unit = {},
+        onClickContinue: () -> Unit = {}
+    ) {
+        var username by rememberSetting(UserSettings.Username)
+        var input by rememberSaveable { mutableStateOf("") }
+
+        val focusRequester = remember { FocusRequester() }
+        val focusManager = LocalFocusManager.current
+
+        var textFieldFocus by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            input = username ?: ""
+        }
+
+        val onClickContinueExtend: () -> Unit = {
+            username = input
+            focusManager.clearFocus()
+            onClickContinue()
+        }
+
+        val onClickPrevExtend: () -> Unit = {
+            focusManager.clearFocus()
+            onClickPrev()
+        }
+
+        BackHandler(enabled = textFieldFocus) {
+            focusManager.clearFocus()
+        }
+
+        SetupScreenLayout(
+            modifier = modifier,
+            onClickPrev = onClickPrevExtend,
+            onClickContinue = onClickContinueExtend
+        ) {
+            TitleWithDescription(
+                title = "Profile",
+                description = "",
+                contentTypography = contentTypography
             )
 
-            Text(
-                text = stringResource(R.string.setup_welcome_desc),
-                modifier = Modifier.padding(top = 20.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.body
-            )
+            Column(
+                modifier = Modifier.padding(top = 40.dp),
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .onFocusChanged {
+                            textFieldFocus = it.isFocused
+                        },
+                    value = input,
+                    onValueChange = {
+                        input = it
+                    },
+                    label = {
+                        Text("Name")
+                    },
+                )
+            }
         }
     }
 
@@ -253,46 +326,55 @@ class SetupActivity : AppActivity() {
         onClickPrev: () -> Unit = {},
         onClickContinue: () -> Unit = {}
     ) {
+        val buildTiramisu = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+        val description = if (buildTiramisu) {
+            stringResource(R.string.setup_permission_desc)
+        } else {
+            stringResource(R.string.setup_permission_desc_none)
+        }
+
         SetupScreenLayout(
             modifier = modifier,
             onClickPrev = onClickPrev,
             onClickContinue = onClickContinue
         ) {
-            Text(
-                text = stringResource(R.string.setup_permission_title),
-                modifier = Modifier.padding(top = 40.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.title
-            )
-
-            Text(
-                text = stringResource(R.string.setup_permission_desc),
-                modifier = Modifier.padding(top = 20.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.body
+            TitleWithDescription(
+                title = stringResource(R.string.setup_permission_title),
+                description = description,
+                contentTypography = contentTypography
             )
 
             Column(
                 modifier = Modifier.padding(top = 40.dp),
             ) {
-                PermissionItem(
-                    title = stringResource(R.string.setup_permission_storage_title),
-                    description = stringResource(R.string.setup_permission_storage_desc),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 20.dp),
-                    onClick = {}
-                )
-                PermissionItem(
-                    title = stringResource(R.string.setup_permission_notification_title),
-                    description = stringResource(R.string.setup_permission_notification_desc),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 20.dp),
-                    onClick = {}
-                )
+                if (buildTiramisu) {
+                    NotificationPermissionItem()
+                }
             }
         }
+    }
+
+    @OptIn(ExperimentalPermissionsApi::class)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    @Composable
+    private fun NotificationPermissionItem() {
+        val permissionState = rememberPermissionState(
+            permission = Manifest.permission.POST_NOTIFICATIONS
+        ) {
+        }
+
+        PermissionItem(
+            title = stringResource(R.string.setup_permission_notification_title),
+            description = stringResource(R.string.setup_permission_notification_desc),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp),
+            allowed = permissionState.status.isGranted,
+            onClick = {
+                permissionState.launchPermissionRequest()
+            }
+        )
     }
 
     @Composable
@@ -302,23 +384,129 @@ class SetupActivity : AppActivity() {
         onClickPrev: () -> Unit = {},
         onClickContinue: () -> Unit = {}
     ) {
+        val permissions = remember {
+            mutableStateListOf<Uri>()
+        }
+
+        val launcher = rememberLauncherForActivityResult(
+            ActivityResultContracts.OpenDocumentTree()
+        ) {
+            if (it == null) {
+                return@rememberLauncherForActivityResult
+            }
+            contentResolver.takePersistableUriPermission(
+                it, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            permissions.add(it)
+        }
+
+        LaunchedEffect(Unit) {
+            contentResolver.persistedUriPermissions.forEach {
+                permissions.add(it.uri)
+            }
+        }
+
         SetupScreenLayout(
             modifier = modifier,
             onClickPrev = onClickPrev,
             onClickContinue = onClickContinue
         ) {
-            Text(
-                text = stringResource(R.string.setup_audio_scan_title),
-                modifier = Modifier.padding(top = 40.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.title
+            TitleWithDescription(
+                title = stringResource(R.string.setup_audio_scan_title),
+                description = stringResource(R.string.setup_audio_scan_desc),
+                contentTypography = contentTypography
             )
-            Text(
-                text = stringResource(R.string.setup_audio_scan_desc),
+
+            Column(
                 modifier = Modifier.padding(top = 20.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.body
-            )
+            ) {
+                permissions.forEach {
+                    UriPermissionItem(
+                        uri = it,
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .fillMaxWidth(),
+                        contentTypography = contentTypography,
+                        onClickRemove = {
+                            contentResolver.releasePersistableUriPermission(
+                                it,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                        or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            )
+                            permissions.remove(it)
+                        }
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(vertical = 10.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(25))
+                ) {
+
+                    Row(
+                        modifier = Modifier
+                            .clickable {
+                                launcher.launch(null)
+                            }
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Add",
+                            modifier = Modifier
+                                .padding(horizontal = 5.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+
+                        Text(
+                            text = "Add folder",
+                            style = contentTypography.body,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+
+        }
+    }
+
+    @Composable
+    private fun UriPermissionItem(
+        uri: Uri,
+        modifier: Modifier = Modifier,
+        contentTypography: ContentTypography = PlayerTheme.typography.contentNormal,
+        onClickRemove: () -> Unit = {}
+    ) {
+        Column(
+            modifier = modifier
+                .height(IntrinsicSize.Min)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = uri.getLastPath().removePrefix("primary:"),
+                    textAlign = TextAlign.Start,
+                    style = contentTypography.body,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+
+                IconButton(onClick = onClickRemove) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_close_24),
+                        contentDescription = "Remove",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
         }
     }
 
@@ -335,18 +523,10 @@ class SetupActivity : AppActivity() {
             onClickContinue = onClickContinue,
             continueLabel = stringResource(R.string.complete)
         ) {
-            Text(
-                text = stringResource(R.string.setup_complete_title),
-                modifier = Modifier.padding(top = 40.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.title
-            )
-
-            Text(
-                text = stringResource(R.string.setup_complete_desc),
-                modifier = Modifier.padding(top = 20.dp),
-                textAlign = TextAlign.Center,
-                style = contentTypography.body
+            TitleWithDescription(
+                title = stringResource(R.string.setup_complete_title) + "🎉",
+                description = stringResource(R.string.setup_complete_desc),
+                contentTypography = contentTypography
             )
         }
     }
@@ -365,9 +545,12 @@ class SetupActivity : AppActivity() {
         ) {
             val (contentRef, bottomButtonRef) = createRefs()
 
+            val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(scrollState)
                     .constrainAs(contentRef) {
                         top.linkTo(parent.top)
                         bottom.linkTo(bottomButtonRef.top)
@@ -397,11 +580,36 @@ class SetupActivity : AppActivity() {
         }
     }
 
+
+    @Composable
+    private fun TitleWithDescription(
+        title: String,
+        description: String,
+        contentTypography: ContentTypography = PlayerTheme.typography.contentNormal
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.padding(top = 40.dp),
+            textAlign = TextAlign.Center,
+            style = contentTypography.title,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Text(
+            text = description,
+            modifier = Modifier.padding(top = 20.dp),
+            textAlign = TextAlign.Center,
+            style = contentTypography.body,
+            color = MaterialTheme.colorScheme.secondary
+        )
+    }
+
     @Composable
     private fun PermissionItem(
         title: String,
         description: String,
         modifier: Modifier = Modifier,
+        allowed: Boolean = false,
         contentTypography: ContentTypography = PlayerTheme.typography.contentNormal,
         onClick: () -> Unit = {}
     ) {
@@ -420,13 +628,15 @@ class SetupActivity : AppActivity() {
                 Text(
                     text = title,
                     textAlign = TextAlign.Start,
-                    style = contentTypography.title
+                    style = contentTypography.title,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
                     text = description,
                     modifier = Modifier.padding(top = 10.dp),
                     textAlign = TextAlign.Start,
-                    style = contentTypography.body
+                    style = contentTypography.body,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -435,16 +645,33 @@ class SetupActivity : AppActivity() {
                     .height(60.dp)
                     .padding(horizontal = 10.dp)
             )
-            FilledTonalButton(
-                modifier = Modifier.padding(horizontal = 8.dp),
-                onClick = onClick
+
+            AnimatedContent(
+                targetState = allowed,
+                // TODO: keep the width same as the button
+                modifier = Modifier.defaultMinSize(minWidth = 72.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.allow)
-                )
+                when (it) {
+                    true -> {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Allowed",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+
+                    false -> {
+                        FilledTonalButton(
+                            onClick = onClick
+                        ) {
+                            Text(
+                                text = stringResource(R.string.allow)
+                            )
+                        }
+                    }
+                }
             }
         }
-
     }
 
     @Composable
@@ -463,7 +690,8 @@ class SetupActivity : AppActivity() {
                 onClick = onClickPrev
             ) {
                 Text(
-                    text = backLabel
+                    text = backLabel,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
 
