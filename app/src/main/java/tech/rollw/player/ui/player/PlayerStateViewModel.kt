@@ -39,7 +39,7 @@ class PlayerStateViewModel : ViewModel(), PlaylistViewModel, PlayerViewModel {
     val scrollOffset: StateFlow<Int> = _scrollOffset
 
     private val _playing = MutableStateFlow(false)
-    private val _audioPosition = MutableStateFlow(0L)
+    private val _audioPosition = MutableStateFlow(PlayerViewModel.INVALID_POSITION)
 
     override val playing: StateFlow<Boolean> = _playing
     override val audioPosition: StateFlow<Long> = _audioPosition

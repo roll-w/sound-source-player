@@ -44,4 +44,8 @@ interface PlayerViewModel {
      * Note: it has no effect on player.
      */
     fun setAudioPosition(position: Long)
+
+    companion object {
+        const val INVALID_POSITION = -1L
+    }
 }
