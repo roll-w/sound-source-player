@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.unit.TextUnit
+import tech.rollw.compose.ui.text.FontUnit.Companion.fontUnit
 
 /**
  * Represents a pair of [TextUnit]s, one for text size
@@ -126,3 +127,52 @@ fun TextStyle(
     textMotion = textMotion
 )
 
+fun TextStyle.copy(
+    color: Color = this.color,
+    fontUnit: FontUnit = this.fontUnit,
+    fontWeight: FontWeight? = this.fontWeight,
+    fontStyle: FontStyle? = this.fontStyle,
+    fontSynthesis: FontSynthesis? = this.fontSynthesis,
+    fontFamily: FontFamily? = this.fontFamily,
+    fontFeatureSettings: String? = this.fontFeatureSettings,
+    letterSpacing: TextUnit = this.letterSpacing,
+    baselineShift: BaselineShift? = this.baselineShift,
+    textGeometricTransform: TextGeometricTransform? = this.textGeometricTransform,
+    localeList: LocaleList? = this.localeList,
+    background: Color = this.background,
+    textDecoration: TextDecoration? = this.textDecoration,
+    shadow: Shadow? = this.shadow,
+    drawStyle: DrawStyle? = this.drawStyle,
+    textAlign: TextAlign = this.textAlign,
+    textDirection: TextDirection = this.textDirection,
+    textIndent: TextIndent? = this.textIndent,
+    platformStyle: PlatformTextStyle? = this.platformStyle,
+    lineHeightStyle: LineHeightStyle? = this.lineHeightStyle,
+    lineBreak: LineBreak = this.lineBreak,
+    hyphens: Hyphens = this.hyphens,
+    textMotion: TextMotion? = this.textMotion
+) = TextStyle(
+    color = color,
+    fontUnit = fontUnit,
+    fontWeight = fontWeight,
+    fontStyle = fontStyle,
+    fontSynthesis = fontSynthesis,
+    fontFamily = fontFamily,
+    fontFeatureSettings = fontFeatureSettings,
+    letterSpacing = letterSpacing,
+    baselineShift = baselineShift,
+    textGeometricTransform = textGeometricTransform,
+    localeList = localeList,
+    background = background,
+    textDecoration = textDecoration,
+    shadow = shadow,
+    drawStyle = drawStyle,
+    textAlign = textAlign,
+    textDirection = textDirection,
+    textIndent = textIndent,
+    platformStyle = platformStyle,
+    lineHeightStyle = lineHeightStyle,
+    lineBreak = lineBreak,
+    hyphens = hyphens,
+    textMotion = textMotion
+)
