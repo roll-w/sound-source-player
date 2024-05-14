@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.DefaultAlpha
@@ -43,18 +44,35 @@ import coil.request.ImageRequest
 fun ImageBackground(
     painter: Painter,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit = {}
+    content: @Composable () -> Unit
+) {
+    Background(
+        modifier = modifier,
+        content = content,
+        background = {
+            Image(
+                painter = painter,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    )
+}
+
+@Composable
+fun BrushBackground(
+    brush: Brush,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
+            .background(
+                brush = brush
+            )
     ) {
-        Image(
-            painter = painter,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
         content()
     }
 }
@@ -63,7 +81,7 @@ fun ImageBackground(
 fun ColorBackground(
     modifier: Modifier = Modifier,
     color: Color = Color.Transparent,
-    content: @Composable () -> Unit = {}
+    content: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -90,7 +108,7 @@ fun AsyncImageBackground(
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
     colorOverlay: Color = Color.Unspecified,
     colorOverlayAlpha: Float = DefaultAlpha,
-    content: @Composable () -> Unit = {}
+    content: @Composable () -> Unit
 ) = Background(
     modifier = modifier,
     content = content,
@@ -121,7 +139,7 @@ fun AsyncImageBackground(
 fun Background(
     modifier: Modifier = Modifier,
     background: @Composable () -> Unit = {},
-    content: @Composable () -> Unit = {}
+    content: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
