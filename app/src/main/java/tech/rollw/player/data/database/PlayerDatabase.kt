@@ -25,6 +25,7 @@ import tech.rollw.player.audio.Audio
 import tech.rollw.player.audio.AudioPath
 import tech.rollw.player.audio.AudioStatistics
 import tech.rollw.player.audio.list.Playlist
+import tech.rollw.player.audio.list.PlaylistItem
 import tech.rollw.player.data.database.dao.AudioDao
 import tech.rollw.player.data.database.dao.AudioPathDao
 import tech.rollw.player.data.database.dao.DateStatisticsDao
@@ -41,7 +42,7 @@ import kotlin.concurrent.Volatile
     entities = [
         Audio::class,
         AudioPath::class,
-        Playlist::class,
+        Playlist::class, PlaylistItem::class,
         AudioStatistics::class,
         Statistics::class, DateStatistics::class
     ],
