@@ -47,4 +47,6 @@ abstract class AudioPathDao : PlayerDao<AudioPath> {
     @Query("SELECT * FROM audio_path")
     abstract override fun getFlow(): Flow<List<AudioPath>>
 
+    @Query("SELECT * FROM audio_path WHERE identifier = :identifier")
+    abstract fun getByIdentifier(identifier: String): List<AudioPath>
 }

@@ -17,9 +17,13 @@
 package tech.rollw.player.data.database.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import tech.rollw.player.audio.Audio
+import tech.rollw.player.audio.AudioPath
 
 /**
  * @author RollW
@@ -34,4 +38,20 @@ abstract class AudioDao : AutoPrimaryKeyDao<Audio> {
 
     @Query("SELECT * FROM audio")
     abstract override fun getFlow(): Flow<List<Audio>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    protected abstract fun insertPaths(paths: List<AudioPath>)
+
+    @Transaction
+    open fun insertAudioWithPath(
+        audio: Audio,
+        audioPaths: List<AudioPath>
+    ): Long {
+        val id = insertAndReturn(audio)
+        val copies = audioPaths.map {
+            it.copy(id = id)
+        }
+        insertPaths(copies)
+        return id
+    }
 }

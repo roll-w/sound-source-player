@@ -20,11 +20,18 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room.databaseBuilder
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import tech.rollw.player.audio.Audio
 import tech.rollw.player.audio.AudioPath
-import tech.rollw.player.audio.PlaybackData
+import tech.rollw.player.audio.AudioStatistics
+import tech.rollw.player.audio.list.Playlist
 import tech.rollw.player.data.database.dao.AudioDao
 import tech.rollw.player.data.database.dao.AudioPathDao
+import tech.rollw.player.data.database.dao.DateStatisticsDao
+import tech.rollw.player.data.database.dao.PlaylistDao
+import tech.rollw.player.data.database.dao.StatisticsDao
+import tech.rollw.player.statistics.DateStatistics
+import tech.rollw.player.statistics.Statistics
 import kotlin.concurrent.Volatile
 
 /**
@@ -34,15 +41,24 @@ import kotlin.concurrent.Volatile
     entities = [
         Audio::class,
         AudioPath::class,
-        PlaybackData::class,
+        Playlist::class,
+        AudioStatistics::class,
+        Statistics::class, DateStatistics::class
     ],
     version = 1
 )
+@TypeConverters(DataConverter::class)
 abstract class PlayerDatabase : RoomDatabase() {
 
     abstract fun getAudioDao(): AudioDao
 
     abstract fun getAudioPathDao(): AudioPathDao
+
+    abstract fun getPlaylistDao(): PlaylistDao
+
+    abstract fun getStatisticsDao(): StatisticsDao
+
+    abstract fun getDateStatisticsDao(): DateStatisticsDao
 
     companion object {
         @Volatile
