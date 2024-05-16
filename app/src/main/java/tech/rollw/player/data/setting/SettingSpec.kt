@@ -140,7 +140,7 @@ data class SettingSpec<T, V>(
 
         fun boolean(key: String, default: Boolean = false) = SettingSpec(
             SettingKey(key, SettingType.BOOLEAN),
-            default = if (default) 1 else 0,
+            default = if (default) 0 else 1,
             valueEntries = arrayOf(true, false)
         )
     }
