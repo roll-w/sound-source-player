@@ -17,8 +17,9 @@
 package tech.rollw.support.io
 
 import android.net.Uri
-import tech.rollw.support.getSuffix
+import tech.rollw.support.StringUtils.getSuffix
 import java.io.File
+import java.io.Serializable
 
 /**
  * @author RollW
@@ -26,7 +27,10 @@ import java.io.File
 data class ContentPath(
     val path: String,
     val type: PathType
-) {
+): Serializable {
+    val extension: String
+        get() = path.getSuffix()
+
     fun toUri(): Uri {
         return when (type) {
             PathType.FILE -> Uri.fromFile(File(path))
@@ -34,11 +38,9 @@ data class ContentPath(
         }
     }
 
-    fun getSuffix(): String {
-        return path.getSuffix()
+    companion object {
+        fun String.toContentPath(type: PathType) = ContentPath(this, type)
+
+        fun Uri.toContentPath() = ContentPath(toString(), PathType.URI)
     }
 }
-
-fun String.toContentPath(type: PathType) = ContentPath(this, type)
-
-fun Uri.toContentPath() = ContentPath(toString(), PathType.URI)
