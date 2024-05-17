@@ -18,8 +18,6 @@ package tech.rollw.player.ui
 
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.app.ActivityManager
-import android.app.ActivityManager.AppTask
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -31,15 +29,19 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.widget.ImageView
 import androidx.core.animation.doOnEnd
-import androidx.core.content.getSystemService
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import tech.rollw.player.BuildConfig
 import tech.rollw.player.R
+import tech.rollw.player.data.setting.AppSettings
+import tech.rollw.player.data.setting.DebugSettings
+import tech.rollw.player.data.setting.SettingValue
 import tech.rollw.player.databinding.ActivitySplashBinding
 import tech.rollw.player.ui.player.MainActivity
+import tech.rollw.player.ui.player.SetupActivity
 import tech.rollw.support.appcompat.AppActivity
 
+@SuppressLint("CustomSplashScreen")
 class SplashActivity : AppActivity() {
     private lateinit var binding: ActivitySplashBinding
 
@@ -63,30 +65,47 @@ class SplashActivity : AppActivity() {
 
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-
         setStatusBar(Color.TRANSPARENT, true)
         window.navigationBarColor = Color.TRANSPARENT
 
         setupView()
         // overridePendingTransition(R.anim.anim_fade_in, R.anim.anim_fade_out)
 
+        if (isShowSetup()) {
+            startActivity(Intent(this, SetupActivity::class.java).apply {
+                putExtra(SetupActivity.EXTRA_NAVIGATE_TO_MAIN, true)
+            }, DURATION)
+            return
+        }
+
         val source = intent?.getStringExtra(EXTRA_SOURCE)
+        val mainActivityIntent = getOrCreateActivityIntent(MainActivity::class.java)
         when (source) {
             SOURCE_NOTIFICATION,
             SOURCE_WIDGET,
             SOURCE_SHORTCUT,
             SOURCE_TILE -> {
-                startMainActivity(0)
+                startActivity(mainActivityIntent, 0)
                 return
             }
-            else -> startMainActivity(DURATION)
+            else -> startActivity(mainActivityIntent, DURATION)
         }
     }
 
-    private fun startMainActivity(delay: Long = DURATION) {
+    private fun isShowSetup(): Boolean {
+        val alwaysShowSetup by SettingValue(DebugSettings.AlwaysShowSetup, this)
+        if (alwaysShowSetup == true) {
+            return true
+        }
+        val appSetup by SettingValue(AppSettings.AppSetup, this)
+        if (appSetup == null) {
+            return true
+        }
+        return !appSetup!!
+    }
+
+    private fun startActivity(intent: Intent, delay: Long = DURATION) {
         fun start() {
-            val intent = requireMainActivityIntent()
             startActivity(intent)
             this@SplashActivity.finish()
         }
@@ -130,33 +149,6 @@ class SplashActivity : AppActivity() {
             typeface = Typeface.DEFAULT
             text = "${getString(R.string.splash_copyright)} ${BuildConfig.VERSION_NAME}"
         }
-    }
-
-    private fun requireMainActivityIntent(): Intent {
-        val activityManager = getSystemService<ActivityManager>()
-            ?: return Intent(this, MainActivity::class.java)
-
-        val appTasks = activityManager.appTasks
-        for (appTask: AppTask in appTasks) {
-            if (appTask.taskInfo.baseActivity == null) {
-                continue
-            }
-            if (appTask.taskInfo.baseActivity!!.className
-                == MainActivity::class.java.canonicalName
-            ) {
-                val resultIntent = Intent(
-                    this,
-                    Class.forName(appTask.taskInfo.topActivity!!.className)
-                )
-                resultIntent.addFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK
-                            or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                            or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                )
-                return resultIntent
-            }
-        }
-        return Intent(this, MainActivity::class.java)
     }
 
     companion object {
