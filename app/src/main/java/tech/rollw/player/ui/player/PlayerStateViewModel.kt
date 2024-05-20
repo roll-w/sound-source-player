@@ -31,13 +31,6 @@ import tech.rollw.support.SourcedData
  * @author RollW
  */
 class PlayerStateViewModel : ViewModel(), PlaylistViewModel, PlayerViewModel {
-    private val _scrollOffset = MutableStateFlow(0)
-
-    /**
-     * Current scroll offset of the screen
-     */
-    val scrollOffset: StateFlow<Int> = _scrollOffset
-
     private val _playing = MutableStateFlow(false)
     private val _audioPosition = MutableStateFlow(PlayerViewModel.INVALID_POSITION)
 
@@ -63,17 +56,6 @@ class PlayerStateViewModel : ViewModel(), PlaylistViewModel, PlayerViewModel {
     override val playlistInfo: StateFlow<Playlist> = _playlistInfo
     override val playlist: StateFlow<List<AudioContent>> = _playlist
     override val index: StateFlow<SourcedData<Int>> = _index
-
-    /**
-     * Set current scroll offset
-     *
-     * @see scrollOffset
-     */
-    fun setScrollOffset(offset: Int = INVALID_SCROLL_OFFSET) {
-        viewModelScope.launch {
-            _scrollOffset.value = offset
-        }
-    }
 
     override fun setIndex(index: Int, source: String?) {
         viewModelScope.launch {
