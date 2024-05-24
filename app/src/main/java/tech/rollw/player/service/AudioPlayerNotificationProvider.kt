@@ -29,6 +29,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaStyleNotificationHelper.MediaStyle
 import com.google.common.collect.ImmutableList
 import tech.rollw.player.R
 import tech.rollw.player.audio.AudioContent
@@ -50,7 +51,6 @@ class AudioPlayerNotificationProvider(
 ) : MediaNotification.Provider {
     private val localImageLoader by context.applicationService<LocalImageLoader>()
     private val commonResources by context.applicationService<CommonResources>()
-
 
     override fun createNotification(
         mediaSession: MediaSession,
@@ -127,9 +127,8 @@ class AudioPlayerNotificationProvider(
                 )
             )
             .setStyle(
-                androidx.media.app.NotificationCompat.MediaStyle()
+                MediaStyle(mediaSession)
                     .setShowActionsInCompactView(1, 2, 3)
-                    .setMediaSession(mediaSession.sessionCompatToken)
                     .setShowCancelButton(true)
                     .setCancelButtonIntent(
                         AudioPlayerActionReceiver.buildMediaPendingIntent(
