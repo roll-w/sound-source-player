@@ -20,7 +20,7 @@ package tech.rollw.player.audio.tag
  * @author RollW
  */
 data class AudioProperties(
-    val soundChannel: Int,
+    val channels: Int,
     val bitRate: Int,
     val sampleRate: Int,
     /**

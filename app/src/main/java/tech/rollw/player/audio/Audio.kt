@@ -51,7 +51,7 @@ data class Audio(
     @ColumnInfo(name = "duration") val duration: Long,
     @ColumnInfo(name = "sample_rate") val sampleRate: Int,
     @ColumnInfo(name = "bit_rate") val bitRate: Int,
-    @ColumnInfo(name = "sound_channel") val soundChannel: Int,
+    @ColumnInfo(name = "channels") val channels: Int,
     @ColumnInfo(name = "type") val type: AudioFormatType,
     @ColumnInfo(name = "last_modified") val lastModified: Long,
     @ColumnInfo(name = "create_time") val createTime: Long
@@ -89,7 +89,7 @@ fun AudioTag.toAudio(
     getAudioProperties().duration,
     getAudioProperties().sampleRate,
     getAudioProperties().bitRate,
-    getAudioProperties().soundChannel,
+    getAudioProperties().channels,
     audioFormatType,
     getLastModified(),
     createTime
