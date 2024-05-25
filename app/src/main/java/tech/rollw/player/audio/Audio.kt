@@ -41,7 +41,11 @@ data class Audio(
     @ColumnInfo(name = "album") val album: String?,
     @ColumnInfo(name = "album_artist") val albumArtist: String?,
     @ColumnInfo(name = "composer") val composer: String?,
+    @ColumnInfo(name = "lyricist") val lyricist: String?,
+    @ColumnInfo(name = "arranger") val arranger: String?,
     @ColumnInfo(name = "track_number") val trackNo: String?,
+    @ColumnInfo(name = "disk_number") val diskNo: String?,
+    @ColumnInfo(name = "copyright") val copyright: String?,
     @ColumnInfo(name = "year") val year: String?,
     @ColumnInfo(name = "genre") val genre: String?,
     @ColumnInfo(name = "duration") val duration: Long,
@@ -52,6 +56,17 @@ data class Audio(
     @ColumnInfo(name = "last_modified") val lastModified: Long,
     @ColumnInfo(name = "create_time") val createTime: Long
 ) {
+
+    companion object {
+        val EMPTY = Audio(
+            null, null, null, null, null,
+            null, null, null, null, null, null, null,
+            null, 0, 0, 0, 0,
+            AudioFormatType.MP3, 0, 0
+        )
+    }
+
+    fun isEmpty() = this == EMPTY || id == null
 }
 
 fun AudioTag.toAudio(
@@ -64,8 +79,12 @@ fun AudioTag.toAudio(
     getTagField(AudioTagField.ALBUM),
     getTagField(AudioTagField.ALBUM_ARTIST),
     getTagField(AudioTagField.COMPOSER),
+    getTagField(AudioTagField.LYRICIST),
+    getTagField(AudioTagField.ARRANGER),
     getTagField(AudioTagField.TRACK_NUMBER),
-    getTagField(AudioTagField.YEAR),
+    getTagField(AudioTagField.DISC_NUMBER),
+    getTagField(AudioTagField.COPYRIGHT),
+    getTagField(AudioTagField.DATE),
     getTagField(AudioTagField.GENRE),
     getAudioProperties().duration,
     getAudioProperties().sampleRate,
