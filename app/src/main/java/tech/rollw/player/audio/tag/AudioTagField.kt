@@ -21,10 +21,14 @@ package tech.rollw.player.audio.tag
  */
 enum class AudioTagField {
     TITLE,
-    ARTIST,
     ALBUM,
     ALBUM_ARTIST("ALBUMARTIST"),
+    ARTIST,
+    ARRANGER,
+    BPM,
     COMPOSER,
+    CONDUCTOR,
+    LYRICIST,
     GENRE,
     YEAR,
     TRACK_NUMBER("TRACKNUMBER"),
@@ -32,8 +36,8 @@ enum class AudioTagField {
     COMMENT,
     LYRICS,
     COPYRIGHT,
-
-
+    LABEL,
+    LANGUAGE,
     ;
 
     val value: String
