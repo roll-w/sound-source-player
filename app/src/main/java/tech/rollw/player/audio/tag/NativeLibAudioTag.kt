@@ -28,47 +28,47 @@ class NativeLibAudioTag(
     val readonly: Boolean = false
 ) : AudioTag {
     /**
-     * Native reference to the file.
+     * Native reference to the tag.
      */
-    private val fileRef: Long = openFileCheck(fileDescriptor, readonly)
+    private val accessorRef: Long = openFileCheck(fileDescriptor, readonly)
     private var closed = false
     private lateinit var audioProperties: AudioProperties
 
     override fun getTagField(field: AudioTagField): String? {
-        return getTagField(fileRef, field.value)
+        return getTagField(accessorRef, field.value)
     }
 
     override fun getArtwork(): ByteArray? {
-        return getArtwork(fileRef)
+        return getArtwork(accessorRef)
     }
 
     override fun setTagField(field: AudioTagField, value: String?) {
         if (value == null) {
-            return deleteTagField(fileRef, field.value)
+            return deleteTagField(accessorRef, field.value)
         }
-        return setTagField(fileRef, field.value, value)
+        return setTagField(accessorRef, field.value, value)
     }
 
     override fun setArtwork(artwork: ByteArray?) {
         if (artwork == null) {
-            return deleteTagField(fileRef, "PICTURE")
+            return deleteTagField(accessorRef, KEY_ARTWORK)
         }
-        return setArtwork(fileRef, artwork)
+        return setArtwork(accessorRef, artwork)
     }
 
     override fun getAudioProperties(): AudioProperties {
         if (!this::audioProperties.isInitialized) {
-            audioProperties = getAudioProperties(fileRef)
+            audioProperties = getAudioProperties(accessorRef)
         }
         return audioProperties
     }
 
     override fun getLastModified(): Long {
-       return lastModified(fileDescriptor)
+       return lastModified(accessorRef)
     }
 
     override fun save() {
-        return saveFile(fileRef)
+        return saveFile(accessorRef)
     }
 
     override fun close() {
@@ -76,7 +76,7 @@ class NativeLibAudioTag(
             return
         }
         closed = true
-        return closeFile(fileRef)
+        return closeFile(accessorRef)
     }
 
     private fun openFileCheck(fileDescriptor: Int, readonly: Boolean): Long {
@@ -87,29 +87,31 @@ class NativeLibAudioTag(
         return fileRef
     }
 
-    private external fun openFile(fileDescriptor: Int, readonly: Boolean): Long
+    private external fun openFile(accessorRef: Int, readonly: Boolean): Long
 
-    private external fun closeFile(fileRef: Long)
+    private external fun closeFile(accessorRef: Long)
 
-    private external fun getTagField(fileRef: Long, tagField: String): String?
+    private external fun getTagField(accessorRef: Long, tagField: String): String?
 
-    private external fun getArtwork(fileRef: Long): ByteArray?
+    private external fun getArtwork(accessorRef: Long): ByteArray?
 
-    private external fun setTagField(fileRef: Long, tagField: String, value: String)
+    private external fun setTagField(accessorRef: Long, tagField: String, value: String)
 
-    private external fun deleteTagField(fileRef: Long, tagField: String)
+    private external fun deleteTagField(accessorRef: Long, tagField: String)
 
-    private external fun setArtwork(fileRef: Long, artwork: ByteArray)
+    private external fun setArtwork(accessorRef: Long, artwork: ByteArray)
 
-    private external fun saveFile(fileRef: Long)
+    private external fun saveFile(accessorRef: Long)
 
-    private external fun getAudioProperties(fileRef: Long) : AudioProperties
+    private external fun getAudioProperties(accessorRef: Long) : AudioProperties
 
-    private external fun lastModified(fd: Int) : Long
+    private external fun lastModified(accessorRef: Long) : Long
 
     companion object {
         init {
             System.loadLibrary("soundsource")
         }
+
+        private const val KEY_ARTWORK = "PICTURE"
     }
 }
