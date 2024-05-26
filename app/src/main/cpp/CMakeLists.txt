@@ -4,7 +4,21 @@ project("soundsource")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} PROJECT_SOURCE_FILES)
+set(project_SRCS
+  ImageUtils_jni.cpp
+  NativeLibAudioTag_jni.cpp
+  logging.h
+)
+
+set(image_SRCS
+  image/image.cpp
+  image/image.h
+)
+
+set(tags_SRCS
+  tags/tags.h
+  tags/tags.cpp
+)
 
 add_subdirectory("taglib")
 
@@ -38,16 +52,32 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/taglib/taglib/dsdiff
 )
 
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}/image
+  ${CMAKE_CURRENT_SOURCE_DIR}/tags
+)
+
+set(native-lib_SRCS
+  ${project_SRCS}
+  ${image_SRCS}
+  ${tags_SRCS}
+)
+
 add_library(
         ${CMAKE_PROJECT_NAME}
         SHARED
-        ${PROJECT_SOURCE_FILES}
+        ${native-lib_SRCS}
 )
+
+find_library(jnigraphics-lib jnigraphics)
+find_package(oboe REQUIRED CONFIG)
 
 target_link_libraries(
         ${CMAKE_PROJECT_NAME}
         android
         log
         tag
+        ${jnigraphics-lib}
+        oboe::oboe
         OpenSLES
 )

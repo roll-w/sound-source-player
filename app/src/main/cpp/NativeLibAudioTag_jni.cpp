@@ -1,10 +1,6 @@
 #include <iostream>
 #include <jni.h>
 #include <string>
-#include <unistd.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include "logging.h"
 
@@ -15,50 +11,48 @@
 #include "tfilestream.h"
 #include "tpropertymap.h"
 
+#include "tags/tags.h"
 
 using namespace std;
 using namespace TagLib;
-
-// TODO: move to a class
+using namespace SoundSource;
 
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_openFile(JNIEnv *env, jobject thiz,
-                                                      jint file_descriptor,
-                                                      jboolean jreadonly) {
+                                                            jint file_descriptor,
+                                                            jboolean jreadonly) {
     bool readonly = jreadonly;
-    FileStream *fs = new FileStream(file_descriptor, readonly);
-    FileRef *f = new FileRef(fs);
-
-    if (f->isNull()) {
+    AudioTagAccessor *accessor = new AudioTagAccessor(file_descriptor, readonly);
+    if (accessor->isNull()) {
         LOGD("file is null");
         return 0;
     }
-    return (jlong) f;
+    return (jlong) accessor;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_closeFile(JNIEnv *env,
-                                                       jobject thiz,
-                                                       jlong fileRef) {
-    FileRef *f = (FileRef *) fileRef;
-
-    free(f);
+                                                             jobject thiz,
+                                                             jlong accessorRef) {
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    accessor->close();
+    delete accessor;
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getTagField(JNIEnv *env,
-                                                         jobject thiz,
-                                                         jlong fileRef,
-                                                         jstring jTagField) {
-    FileRef *file = (FileRef *) fileRef;
-    Tag *t = file->tag();
+                                                               jobject thiz,
+                                                               jlong accessorRef,
+                                                               jstring jTagField) {
+    AudioTagAccessor *tagAccessor = (AudioTagAccessor *) accessorRef;
+    Tag *t = tagAccessor->tag();
     auto fieldName = env->GetStringUTFChars(jTagField, 0);
 
     if (t == nullptr) {
-        LOGD("Tag is null of fileRef*(=%lld), field=%s", fileRef, fieldName);
+        LOGD("Tag is null of accessor*(=%ld), field=%s", accessorRef, fieldName);
         return nullptr;
     }
 
@@ -76,19 +70,17 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getTagField(JNIEnv *env,
 extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getArtwork(JNIEnv *env,
-                                                        jobject thiz,
-                                                        jlong fileRef) {
+                                                              jobject thiz,
+                                                              jlong accessorRef) {
     // FIXME: cannot read picture from some flac files
-    FileRef *ref = (FileRef *) fileRef;
-    File *f = ref->file();
+    AudioTagAccessor *tagAccessor = (AudioTagAccessor *) accessorRef;
+    File *f = tagAccessor->fileRef()->file();
 
     const List<VariantMap> &pictures = f->complexProperties("PICTURE");
-    // LOGD("fileRef=%lld: pictures.size()=%d", fileRef, pictures.size());
     if (pictures.isEmpty()) {
         return nullptr;
     }
     auto map = pictures.front();
-    // LOGD("fileRef=%lld: map.size()=%d", fileRef, map.size());
     auto data = map["data"].toByteVector();
     if (data.isEmpty()) {
         return nullptr;
@@ -103,56 +95,52 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getArtwork(JNIEnv *env,
 extern "C"
 JNIEXPORT void JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_setTagField(JNIEnv *env, jobject thiz,
-                                                         jlong file_ref,
-                                                         jstring tag_field,
-                                                         jstring value) {
+                                                               jlong accessorRef,
+                                                               jstring tag_field,
+                                                               jstring value) {
     // TODO: implement nativeSetTagField()
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_setArtwork(JNIEnv *env,
-                                                        jobject thiz,
-                                                        jlong file_ref,
-                                                        jbyteArray artwork) {
+                                                              jobject thiz,
+                                                              jlong accessorRef,
+                                                              jbyteArray artwork) {
     // TODO: implement nativeSetArtwork()
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_saveFile(JNIEnv *env,
-                                                      jobject thiz,
-                                                      jlong file_ref) {
+                                                            jobject thiz,
+                                                            jlong accessorRef) {
     // TODO: implement nativeSave()
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_deleteTagField(JNIEnv *env,
-                                                            jobject thiz,
-                                                            jlong file_ref,
-                                                            jstring tag_field) {
+                                                                  jobject thiz,
+                                                                  jlong accessorRef,
+                                                                  jstring tag_field) {
 
 }
 
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_lastModified(JNIEnv *env,
-                                                          jobject thiz,
-                                                          jint fd) {
-
-    struct stat st;
-    fstat(fd, &st);
-    timespec ts = st.st_mtim;
-    long mtime_ms = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-
-    return mtime_ms;
+                                                                jobject thiz,
+                                                                jlong accessorRef) {
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    return accessor->lastModified();
 }
 
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getAudioProperties(JNIEnv *env,
-                                                                jobject thiz,
-                                                                jlong file_ref) {
-    FileRef *ref = (FileRef *) file_ref;
+                                                                      jobject thiz,
+                                                                      jlong accessorRef) {
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    FileRef *ref = accessor->fileRef();
     AudioProperties *properties = ref->audioProperties();
 
     jclass propertiesClass = env->FindClass(
