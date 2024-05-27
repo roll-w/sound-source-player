@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (C) 2022 Lingu. All rights reserved.
+  ~
+  ~           https://lingu.space/
+  ~
+  ~ Any form of use of the source code, pictures
+  ~ and other resources of the project without
+  ~ written consent shall not be allowed.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="500"
+    android:viewportHeight="500"
+    tools:ignore="VectorRaster">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M388.86,274.34L174.84,395.57c-18.74,10.61 -41.96,-2.93 -41.95,-24.46l0.11,-242.23c0.01,-21.52 23.21,-35.04 41.93,-24.45l213.92,121.01C407.86,236.19 407.87,263.57 388.86,274.34z">
+  </path>
+</vector>
