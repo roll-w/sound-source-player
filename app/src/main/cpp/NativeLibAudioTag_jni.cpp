@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2024 RollW
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <iostream>
 #include <jni.h>
 #include <string>
@@ -17,6 +33,10 @@ using namespace std;
 using namespace TagLib;
 using namespace SoundSource;
 
+void throwAccessorNullException(JNIEnv *env) {
+    env->ThrowNew(env->FindClass("java/lang/NullPointerException"), "accessor is null");
+}
+
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_openFile(JNIEnv *env, jobject thiz,
@@ -25,7 +45,10 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_openFile(JNIEnv *env, jobject
     bool readonly = jreadonly;
     AudioTagAccessor *accessor = new AudioTagAccessor(file_descriptor, readonly);
     if (accessor->isNull()) {
-        LOGD("file is null");
+        env->ThrowNew(
+                env->FindClass("java/io/IOException"),
+                "Cannot open native TagAccessor with given file descriptor."
+        );
         return 0;
     }
     return (jlong) accessor;
@@ -37,6 +60,11 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_closeFile(JNIEnv *env,
                                                              jobject thiz,
                                                              jlong accessorRef) {
     AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return;
+    }
+
     accessor->close();
     delete accessor;
 }
@@ -47,8 +75,12 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getTagField(JNIEnv *env,
                                                                jobject thiz,
                                                                jlong accessorRef,
                                                                jstring jTagField) {
-    AudioTagAccessor *tagAccessor = (AudioTagAccessor *) accessorRef;
-    Tag *t = tagAccessor->tag();
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return nullptr;
+    }
+    Tag *t = accessor->tag();
     auto fieldName = env->GetStringUTFChars(jTagField, 0);
 
     if (t == nullptr) {
@@ -73,8 +105,12 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getArtwork(JNIEnv *env,
                                                               jobject thiz,
                                                               jlong accessorRef) {
     // FIXME: cannot read picture from some flac files
-    AudioTagAccessor *tagAccessor = (AudioTagAccessor *) accessorRef;
-    File *f = tagAccessor->fileRef()->file();
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return nullptr;
+    }
+    File *f = accessor->fileRef()->file();
 
     const List<VariantMap> &pictures = f->complexProperties("PICTURE");
     if (pictures.isEmpty()) {
@@ -85,7 +121,7 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getArtwork(JNIEnv *env,
     if (data.isEmpty()) {
         return nullptr;
     }
-    int size = data.size();
+    auto size = data.size();
     jbyteArray result = env->NewByteArray(size);
     env->SetByteArrayRegion(result, 0, size,
                             (jbyte *) data.data());
@@ -98,22 +134,59 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_setTagField(JNIEnv *env, jobj
                                                                jlong accessorRef,
                                                                jstring tag_field,
                                                                jstring value) {
-    // TODO: implement nativeSetTagField()
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return;
+    }
+    auto fieldName = env->GetStringUTFChars(tag_field, 0);
+    auto fieldValue = env->GetStringUTFChars(value, 0);
+
+    Tag *tag = accessor->tag();
+    PropertyMap propertyMap = tag->properties();
+    propertyMap[fieldName] = String(fieldValue);
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_setArtwork(JNIEnv *env,
                                                               jobject thiz,
                                                               jlong accessorRef,
                                                               jbyteArray artwork) {
-    // TODO: implement nativeSetArtwork()
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return;
+    }
+    File *f = accessor->fileRef()->file();
+    jbyte *data = env->GetByteArrayElements(artwork, nullptr);
+    auto size = env->GetArrayLength(artwork);
+    ByteVector byteVector((const char *) data, size);
+
+    TagLib::String mimeType = byteVector.startsWith("\x89PNG\x0d\x0a\x1a\x0a")
+                              // TODO: add utility to detect image type
+                              ? "image/png" : "image/jpeg";
+    f->setComplexProperties("PICTURE", List<VariantMap>{
+            VariantMap{
+                    {"data",        byteVector},
+                    {"pictureType", "Front Cover"},
+                    {"mimeType",    mimeType}
+            }
+    });
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_saveFile(JNIEnv *env,
                                                             jobject thiz,
                                                             jlong accessorRef) {
-    // TODO: implement nativeSave()
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return;
+    }
+    File *f = accessor->fileRef()->file();
+    f->save();
 }
 
 extern "C"
@@ -122,7 +195,24 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_deleteTagField(JNIEnv *env,
                                                                   jobject thiz,
                                                                   jlong accessorRef,
                                                                   jstring tag_field) {
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return;
+    }
+    string fieldName = env->GetStringUTFChars(tag_field, 0);
+    if (fieldName.empty()) {
+        return;
+    }
+    if (fieldName == "PICTURE") {
+        File *f = accessor->fileRef()->file();
+        f->setComplexProperties("PICTURE", {});
+        return;
+    }
 
+    Tag *tag = accessor->tag();
+    PropertyMap propertyMap = tag->properties();
+    propertyMap.erase(fieldName);
 }
 
 extern "C"
@@ -131,6 +221,10 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_lastModified(JNIEnv *env,
                                                                 jobject thiz,
                                                                 jlong accessorRef) {
     AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return 0;
+    }
     return accessor->lastModified();
 }
 
@@ -140,6 +234,11 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getAudioProperties(JNIEnv *en
                                                                       jobject thiz,
                                                                       jlong accessorRef) {
     AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return nullptr;
+    }
+
     FileRef *ref = accessor->fileRef();
     AudioProperties *properties = ref->audioProperties();
 
