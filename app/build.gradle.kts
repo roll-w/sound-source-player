@@ -17,6 +17,7 @@
 import com.android.build.api.dsl.ApplicationProductFlavor
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 import java.util.*
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -32,12 +33,13 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        manifestPlaceholders += mapOf()
         applicationId = "tech.rollw.player"
         minSdk = 24
         targetSdk = 34
-        versionCode = 5
-        versionName = "0.1.4.R"
+        versionCode = 20
+        versionName = "0.1.5-beta04"
+
+        val filesAuthorityValue = "$applicationId.FileProvider"
 
         archivesName.set("${applicationId}-${versionName}")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -47,17 +49,17 @@ android {
                 arguments += "-DANDROID_STL=c++_shared"
             }
         }
-        val filesAuthorityValue = "$applicationId.FileProvider"
-        manifestPlaceholders["filesAuthority"] = filesAuthorityValue
+        manifestPlaceholders += mapOf("filesAuthority" to filesAuthorityValue)
+
         buildConfigField(
             "String",
             "FILES_AUTHORITY",
             "\"${filesAuthorityValue}\""
         )
-
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         buildConfigField("int", "VERSION_CODE", "$versionCode")
         buildConfigField("String", "APPLICATION_ID", "\"$applicationId\"")
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -86,7 +88,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             isDebuggable = false
             signingConfig = signingConfigs["default"]
         }
@@ -185,6 +190,7 @@ dependencies {
     implementation(libs.androidx.palette.ktx)
 
     implementation(libs.bundles.androidx.compose)
+    implementation(libs.bundles.accompanist)
     implementation(libs.bundles.androidx.work)
     implementation(libs.bundles.androidx.lifecycle)
     implementation(libs.bundles.androidx.media3)
