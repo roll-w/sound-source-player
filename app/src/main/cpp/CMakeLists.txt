@@ -29,6 +29,7 @@ set(project_SRCS
 set(image_SRCS
   image/image.cpp
   image/image.h
+  image/imageinfo.hpp
 )
 
 set(tags_SRCS
