@@ -27,7 +27,7 @@ import java.io.Serializable
 data class ContentPath(
     val path: String,
     val type: PathType
-): Serializable {
+) : Serializable {
     val extension: String
         get() = path.getSuffix()
 
@@ -39,6 +39,8 @@ data class ContentPath(
     }
 
     companion object {
+        val EMPTY = ContentPath("", PathType.FILE)
+
         fun String.toContentPath(type: PathType) = ContentPath(this, type)
 
         fun Uri.toContentPath() = ContentPath(toString(), PathType.URI)
