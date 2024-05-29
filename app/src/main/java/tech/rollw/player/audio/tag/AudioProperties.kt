@@ -21,7 +21,14 @@ package tech.rollw.player.audio.tag
  */
 data class AudioProperties(
     val channels: Int,
+    /**
+     * Bit rate in kbps.
+     */
     val bitRate: Int,
+    val bitDepth: Int,
+    /**
+     * Sample rate in Hz.
+     */
     val sampleRate: Int,
     /**
      * Duration in milliseconds.

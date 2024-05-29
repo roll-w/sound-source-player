@@ -163,14 +163,10 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_setArtwork(JNIEnv *env,
     auto size = env->GetArrayLength(artwork);
     ByteVector byteVector((const char *) data, size);
 
-    TagLib::String mimeType = byteVector.startsWith("\x89PNG\x0d\x0a\x1a\x0a")
-                              // TODO: add utility to detect image type
-                              ? "image/png" : "image/jpeg";
     f->setComplexProperties("PICTURE", List<VariantMap>{
             VariantMap{
                     {"data",        byteVector},
-                    {"pictureType", "Front Cover"},
-                    {"mimeType",    mimeType}
+                    {"pictureType", "Front Cover"}
             }
     });
 }
@@ -247,12 +243,13 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getAudioProperties(JNIEnv *en
     );
     jmethodID constructor = env->GetMethodID(
             propertiesClass,
-            "<init>", "(IIIJ)V");
+            "<init>", "(IIIIJ)V");
 
     return env->NewObject(
             propertiesClass, constructor,
             properties->channels(),
             properties->bitrate(),
+            accessor->bitDepth(),
             properties->sampleRate(),
             (jlong) properties->lengthInMilliseconds()
     );
