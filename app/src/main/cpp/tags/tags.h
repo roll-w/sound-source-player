@@ -35,6 +35,10 @@ namespace SoundSource {
 
         int64_t lastModified();
 
+        int64_t size();
+
+        int32_t bitDepth();
+
         void open();
 
         void close();
