@@ -31,6 +31,7 @@ class NativeLibAudioTag(
      * Native reference to the tag.
      */
     private val accessorRef: Long = openFileCheck(fileDescriptor, readonly)
+
     private var closed = false
     private lateinit var audioProperties: AudioProperties
 
@@ -64,7 +65,11 @@ class NativeLibAudioTag(
     }
 
     override fun getLastModified(): Long {
-       return lastModified(accessorRef)
+        return lastModified(accessorRef)
+    }
+
+    override fun getSize(): Long {
+        return getSize(accessorRef)
     }
 
     override fun save() {
@@ -106,6 +111,8 @@ class NativeLibAudioTag(
     private external fun getAudioProperties(accessorRef: Long) : AudioProperties
 
     private external fun lastModified(accessorRef: Long) : Long
+
+    private external fun getSize(accessorRef: Long): Long
 
     companion object {
         init {

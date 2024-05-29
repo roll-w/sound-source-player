@@ -224,6 +224,20 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_lastModified(JNIEnv *env,
     return accessor->lastModified();
 }
 
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getSize(JNIEnv *env, jobject thiz,
+                                                           jlong accessorRef) {
+    AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
+    if (accessor == nullptr) {
+        throwAccessorNullException(env);
+        return -1;
+    }
+
+    return accessor->size();
+}
+
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getAudioProperties(JNIEnv *env,

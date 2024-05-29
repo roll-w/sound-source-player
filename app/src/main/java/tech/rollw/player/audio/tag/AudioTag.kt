@@ -20,6 +20,9 @@ import tech.rollw.player.audio.AudioFormatType
 import java.io.Closeable
 
 /**
+ * Provides access to the audio tag and its metadata
+ * such as bitrate, duration, and file size etc.
+ *
  * @author RollW
  */
 interface AudioTag : Closeable {
@@ -35,6 +38,11 @@ interface AudioTag : Closeable {
     fun getAudioProperties(): AudioProperties
 
     fun getLastModified(): Long
+
+    /**
+     * Get the size of the audio file.
+     */
+    fun getSize(): Long
 
     /**
      * Set the tag field to the given value.
