@@ -27,7 +27,8 @@
 #include "tfilestream.h"
 #include "tpropertymap.h"
 
-#include "tags/tags.h"
+#include <tags/tags.h>
+#include <image/image.h>
 
 using namespace std;
 using namespace TagLib;
@@ -35,6 +36,14 @@ using namespace SoundSource;
 
 void throwAccessorNullException(JNIEnv *env) {
     env->ThrowNew(env->FindClass("java/lang/NullPointerException"), "accessor is null");
+}
+
+jstring toJString(JNIEnv *env, String string) {
+    auto cString = string.toCString(true);
+    if (cString == nullptr) {
+        return nullptr;
+    }
+    return env->NewStringUTF(cString);
 }
 
 extern "C"
@@ -99,33 +108,73 @@ Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getTagField(JNIEnv *env,
     return env->NewStringUTF(cString);
 }
 
+jbyteArray toJByteArray(JNIEnv *env, const ByteVector &byteVector) {
+    if (byteVector.isEmpty()) {
+        return nullptr;
+    }
+    auto size = byteVector.size();
+    jbyteArray jbytes = env->NewByteArray(size);
+    env->SetByteArrayRegion(jbytes, 0, size, (jbyte *) byteVector.data());
+    return jbytes;
+}
+
 extern "C"
-JNIEXPORT jbyteArray JNICALL
+JNIEXPORT jobject JNICALL
 Java_tech_rollw_player_audio_tag_NativeLibAudioTag_getArtwork(JNIEnv *env,
                                                               jobject thiz,
-                                                              jlong accessorRef) {
+                                                              jlong accessorRef,
+                                                              jboolean includeData) {
     // FIXME: cannot read picture from some flac files
     AudioTagAccessor *accessor = (AudioTagAccessor *) accessorRef;
     if (accessor == nullptr) {
         throwAccessorNullException(env);
         return nullptr;
     }
-    File *f = accessor->fileRef()->file();
 
+    File *f = accessor->fileRef()->file();
     const List<VariantMap> &pictures = f->complexProperties("PICTURE");
     if (pictures.isEmpty()) {
         return nullptr;
     }
+
     auto map = pictures.front();
-    auto data = map["data"].toByteVector();
-    if (data.isEmpty()) {
+    if (map.isEmpty()) {
         return nullptr;
     }
-    auto size = data.size();
-    jbyteArray result = env->NewByteArray(size);
-    env->SetByteArrayRegion(result, 0, size,
-                            (jbyte *) data.data());
-    return result;
+
+    auto description = toJString(env, map["description"].toString());
+    auto type = toJString(env, map["pictureType"].toString());
+
+    ByteVector byteVector = map["data"].toByteVector();
+    const void *imageRaw = byteVector.data();
+
+    Image::ImageInfo imageInfo = Image::getImageInfo(
+            imageRaw, byteVector.size()
+    );
+
+    jbyteArray jbytesData = nullptr;
+
+    if (includeData) {
+        jbytesData = toJByteArray(env, byteVector);
+    }
+
+    jclass artworkClass = env->FindClass(
+            "tech/rollw/player/audio/tag/NativeLibAudioTag$NativeArtwork");
+
+    jmethodID constructor = env->GetMethodID(
+            artworkClass,
+            "<init>", "(Ljava/lang/String;[BIIJLjava/lang/String;Ljava/lang/String;)V"
+    );
+
+    auto mimeType = env->NewStringUTF(imageInfo.mimetype());
+    return env->NewObject(
+            artworkClass, constructor,
+            mimeType, jbytesData,
+            (jint) imageInfo.size().width,
+            (jint) imageInfo.size().height,
+            (jlong) byteVector.size(),
+            description, type
+    );
 }
 
 extern "C"

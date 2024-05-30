@@ -33,7 +33,14 @@ interface AudioTag : Closeable {
      */
     fun getTagField(field: AudioTagField): String?
 
-    fun getArtwork(): ByteArray?
+    /**
+     * Get the cover artwork of the audio.
+     *
+     * @param includeData whether to include the artwork data.
+     * If false, only the metadata will be returned.
+     * @return the [Artwork] or null if not found.
+     */
+    fun getArtwork(includeData: Boolean = true): Artwork?
 
     fun getAudioProperties(): AudioProperties
 

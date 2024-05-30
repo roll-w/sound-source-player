@@ -17,6 +17,7 @@
 package tech.rollw.player.audio.tag
 
 import tech.rollw.player.audio.AudioFormatType
+import tech.rollw.support.io.ImageFormatType
 import java.io.IOException
 
 /**
@@ -39,8 +40,12 @@ class NativeLibAudioTag(
         return getTagField(accessorRef, field.value)
     }
 
-    override fun getArtwork(): ByteArray? {
-        return getArtwork(accessorRef)
+    override fun getArtwork(includeData: Boolean): Artwork? {
+        val nativeArtwork = getArtwork(
+            accessorRef,
+            includeData
+        ) ?: return null
+        return nativeArtwork.toArtwork()
     }
 
     override fun setTagField(field: AudioTagField, value: String?) {
@@ -84,6 +89,7 @@ class NativeLibAudioTag(
         return closeFile(accessorRef)
     }
 
+    @Throws(IOException::class)
     private fun openFileCheck(fileDescriptor: Int, readonly: Boolean): Long {
         val fileRef = openFile(fileDescriptor, readonly)
         if (fileRef == 0L) {
@@ -92,25 +98,54 @@ class NativeLibAudioTag(
         return fileRef
     }
 
+    private data class NativeArtwork(
+        val mimeType: String?,
+        val data: ByteArray?,
+        val width: Int,
+        val height: Int,
+        val length: Long,
+        val description: String?,
+        val type: String?
+    ) {
+
+        fun toArtwork(): Artwork {
+            return ByteArrayArtwork(
+                format = ImageFormatType.fromMimeType(mimeType),
+                data = data,
+                width = width,
+                height = height,
+                length = length,
+                description = description,
+                type = type
+            )
+        }
+    }
+
+    @Throws(IOException::class)
     private external fun openFile(accessorRef: Int, readonly: Boolean): Long
 
     private external fun closeFile(accessorRef: Long)
 
     private external fun getTagField(accessorRef: Long, tagField: String): String?
 
-    private external fun getArtwork(accessorRef: Long): ByteArray?
+    /**
+     * Get artwork from the file.
+     *
+     * @param includeData Whether to fill the [NativeArtwork.data] of the artwork.
+     */
+    private external fun getArtwork(accessorRef: Long, includeData: Boolean = true): NativeArtwork?
 
     private external fun setTagField(accessorRef: Long, tagField: String, value: String)
 
     private external fun deleteTagField(accessorRef: Long, tagField: String)
 
-    private external fun setArtwork(accessorRef: Long, artwork: ByteArray)
+    private external fun setArtwork(accessorRef: Long, artwork: ByteArray?)
 
     private external fun saveFile(accessorRef: Long)
 
-    private external fun getAudioProperties(accessorRef: Long) : AudioProperties
+    private external fun getAudioProperties(accessorRef: Long): AudioProperties
 
-    private external fun lastModified(accessorRef: Long) : Long
+    private external fun lastModified(accessorRef: Long): Long
 
     private external fun getSize(accessorRef: Long): Long
 

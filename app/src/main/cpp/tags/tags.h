@@ -18,9 +18,9 @@
 #define SOUNDSOURCE_TAGS_H
 
 #include <sys/types.h>
-#include "tpropertymap.h"
-#include "tag.h"
-#include "fileref.h"
+#include <taglib/taglib/toolkit/tpropertymap.h>
+#include <taglib/taglib/fileref.h>
+#include <taglib/taglib/tag.h>
 
 namespace SoundSource {
     class AudioTagAccessor {
@@ -29,14 +29,17 @@ namespace SoundSource {
 
         ~AudioTagAccessor();
 
-        TagLib::Tag* tag();
+        TagLib::Tag *tag();
 
-        TagLib::FileRef* fileRef();
+        TagLib::FileRef *fileRef();
 
         int64_t lastModified();
 
         int64_t size();
 
+        /**
+         * @return -1 if no bit depth information is available
+         */
         int32_t bitDepth();
 
         void open();
