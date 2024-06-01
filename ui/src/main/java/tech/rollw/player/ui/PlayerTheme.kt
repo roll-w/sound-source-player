@@ -37,6 +37,7 @@ fun PlayerTheme(
 ) {
     CompositionLocalProvider(
         LocalTypography provides typography,
+        LocalContentTypography provides typography.contentNormal
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -56,4 +57,14 @@ object PlayerTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalTypography.current
+
+    val colorScheme: ColorScheme
+        @Composable
+        @ReadOnlyComposable
+        get() = MaterialTheme.colorScheme
+
+    val shapes: Shapes
+        @Composable
+        @ReadOnlyComposable
+        get() = MaterialTheme.shapes
 }

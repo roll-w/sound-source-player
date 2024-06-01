@@ -16,6 +16,8 @@
 
 package tech.rollw.player.ui
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
@@ -33,6 +35,7 @@ import tech.rollw.compose.ui.text.copy
 @Immutable
 data class Typography(
     val contentLarge: ContentTypography = TypographyDefaults.ContentDefault,
+    val contentMedium: ContentTypography = TypographyDefaults.ContentDefault,
     val contentNormal: ContentTypography = TypographyDefaults.ContentDefault,
     val contentSmall: ContentTypography = TypographyDefaults.ContentDefault,
     /**
@@ -163,9 +166,9 @@ data class ContentTypography(
 }
 
 data class FontUnits(
-    val tiny: FontUnit = 10.sp lineHeight 16.sp,
-    val small: FontUnit = 12.sp lineHeight 18.sp,
-    val normal: FontUnit = 14.sp lineHeight 22.sp,
+    val tiny: FontUnit = 10.sp lineHeight 14.sp,
+    val small: FontUnit = 12.sp lineHeight 16.sp,
+    val normal: FontUnit = 14.sp lineHeight 18.sp,
     val large: FontUnit = 16.sp lineHeight 24.sp,
     val extraLarge: FontUnit = 18.sp lineHeight 28.sp,
     val extremeLarge: FontUnit = 20.sp lineHeight 32.sp,
@@ -201,13 +204,13 @@ internal object TypographyDefaults {
 
     val Header = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.Normal,
         fontUnit = FontUnits.huge,
         letterSpacing = 0.5.sp
     )
     val Title = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Normal,
         fontUnit = FontUnits.extraLarge,
         letterSpacing = 0.5.sp
     )
@@ -258,7 +261,21 @@ internal object TypographyDefaults {
         tip = Tip,
         code = Code
     )
-
 }
 
 internal val LocalTypography = staticCompositionLocalOf { Typography() }
+
+val LocalContentTypography = staticCompositionLocalOf {
+    TypographyDefaults.ContentDefault
+}
+
+@Composable
+fun ProvideContentTypography(
+    typography: ContentTypography,
+    content: @Composable () -> Unit
+) {
+    CompositionLocalProvider(
+        LocalContentTypography provides typography,
+        content = content
+    )
+}
