@@ -18,6 +18,14 @@
         ]>
 <resources>
     <string name="app_name">&appName;</string>
+    <string name="add">添加</string>
+    <string name="remove">移除</string>
+    <string name="delete">删除</string>
+    <string name="save">保存</string>
+    <string name="edit">编辑</string>
+    <string name="copy">复制</string>
+    <string name="paste">粘贴</string>
+    <string name="cut">剪切</string>
     <string name="close">关闭</string>
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>
@@ -26,11 +34,15 @@
     <string name="scontinue">继续</string>
     <string name="complete">完成</string>
     <string name="allow">允许</string>
+    <string name="select">选择</string>
+    <string name="select_all">全选</string>
     <string name="search">搜索</string>
     <string name="setting">设置</string>
     <string name="media_store">媒体库</string>
 
     <string name="about">关于</string>
+    <string name="name">名称</string>
+    <string name="scan">扫描</string>
 
     <string name="all_songs">所有歌曲</string>
     <string name="albums">专辑</string>
@@ -41,6 +53,41 @@
 
     <string name="action_pause">暂停</string>
     <string name="action_play">播放</string>
+
+    <string name="pause">暂停</string>
+    <string name="play">播放</string>
+
+    <string name="title">标题</string>
+    <string name="artist">艺术家</string>
+    <string name="album">专辑</string>
+    <string name="album_artist">专辑艺术家</string>
+    <string name="genre">流派</string>
+    <string name="track_number">曲目号</string>
+    <string name="disc_number">碟片号</string>
+    <string name="year">年份</string>
+    <string name="composer">作曲家</string>
+    <string name="lyricist">作词家</string>
+    <string name="copyright">版权</string>
+    <string name="publisher">出版商</string>
+    <string name="comment">注释</string>
+    <string name="cover">封面</string>
+    <string name="lyrics">歌词</string>
+
+    <string name="duration">时长</string>
+    <string name="size">大小</string>
+    <string name="date">日期</string>
+    <string name="bit_rate">比特率</string>
+    <string name="bit_depth">位深</string>
+    <string name="sample_rate">采样率</string>
+    <string name="channels">声道</string>
+    <string name="format">格式</string>
+    <string name="path">路径</string>
+    <string name="file_size">文件大小</string>
+    <string name="last_modified">最后修改</string>
+    <string name="added_time">添加时间</string>
+
+    <string name="audio_info">音频信息</string>
+    <string name="audio_tags">音频标签</string>
 
     <string name="greeting_morning">早上好，%s</string>
     <string name="greeting_noon">午安，%s</string>
@@ -72,18 +119,25 @@
     <string name="setup_welcome_desc">
         让我们从配置一些设置开始，我们将引导您完成整个过程。
     </string>
-    <string name="setup_permission_title">权限</string>
-    <string name="setup_permission_desc">&appName;需要一些权限才能正常工作。</string>
-    <string name="setup_permission_storage_title">存储</string>
-    <string name="setup_permission_storage_desc">
-        &appName;需要访问您的存储空间以扫描音频文件。
+    <string name="setup_profile_title">个人资料</string>
+    <string name="setup_profile_desc">
+        填写您的个人资料，这将用于&appName;的一些功能。所有的数据都将在您的设备上存储和处理。
     </string>
+    <string name="setup_permission_title">权限</string>
+    <string name="setup_permission_desc">
+        &appName;可能需要一些权限才能按照预期工作。
+        但下列所有权限都不是必须的，您可以按照权限说明并根据您的需求选择。
+    </string>
+    <string name="setup_permission_desc_none">在您的设备上，&appName;无需任何权限即可正常工作！</string>
     <string name="setup_permission_notification_title">通知</string>
     <string name="setup_permission_notification_desc">
         &appName;需要访问您的通知以显示当前播放的歌曲。
     </string>
     <string name="setup_audio_scan_title">音频扫描</string>
-    <string name="setup_audio_scan_desc">&appName;将扫描您的音频文件，这可能需要一些时间。</string>
-    <string name="setup_complete_title">设置完成！🎉</string>
-    <string name="setup_complete_desc">您已成功设置&appName;。尽情享受音乐吧！</string>
+    <string name="setup_audio_scan_desc">
+        扫描您设备中的音频文件，扫描可能需要一段时间。您首先需要选择扫描位置并点击扫描按钮，
+        在扫描开始后，您可以点击继续按钮，&appName;将在后台继续扫描。
+    </string>
+    <string name="setup_complete_title">设置完成！</string>
+    <string name="setup_complete_desc">您已成功设置&appName;。\n尽情享受音乐吧！</string>
 </resources>

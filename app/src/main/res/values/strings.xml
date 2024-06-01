@@ -22,6 +22,14 @@
     <string name="splash_copyright" translatable="false">
         Copyright (C) 2024 RollW.\nDevelopment version
     </string>
+    <string name="add">Add</string>
+    <string name="remove">Remove</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="copy">Copy</string>
+    <string name="paste">Paste</string>
+    <string name="cut">Cut</string>
     <string name="close">Close</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
@@ -31,11 +39,15 @@
     <string name="scontinue">Continue</string>
     <string name="complete">Complete</string>
     <string name="allow">Allow</string>
+    <string name="select">Select</string>
+    <string name="select_all">Select All</string>
     <string name="search">Search</string>
     <string name="setting">Setting</string>
     <string name="media_store">Media Store</string>
 
     <string name="about">About</string>
+    <string name="name">Name</string>
+    <string name="scan">Scan</string>
 
     <string name="all_songs">All Songs</string>
     <string name="albums">Albums</string>
@@ -46,6 +58,41 @@
 
     <string name="action_pause">Pause</string>
     <string name="action_play">Play</string>
+
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
+
+    <string name="title">Title</string>
+    <string name="artist">Artist</string>
+    <string name="album">Album</string>
+    <string name="album_artist">Album Artist</string>
+    <string name="genre">Genre</string>
+    <string name="track_number">Track Number</string>
+    <string name="disc_number">Disc Number</string>
+    <string name="year">Year</string>
+    <string name="composer">Composer</string>
+    <string name="lyricist">Lyricist</string>
+    <string name="copyright">Copyright</string>
+    <string name="publisher">Publisher</string>
+    <string name="comment">Comment</string>
+    <string name="cover">Cover</string>
+    <string name="lyrics">Lyrics</string>
+
+    <string name="duration">Duration</string>
+    <string name="size">Size</string>
+    <string name="date">Date</string>
+    <string name="bit_rate">Bitrate</string>
+    <string name="bit_depth">Bit Depth</string>
+    <string name="sample_rate">Sample Rate</string>
+    <string name="channels">Channels</string>
+    <string name="format">Format</string>
+    <string name="path">Path</string>
+    <string name="file_size">File Size</string>
+    <string name="last_modified">Last Modified</string>
+    <string name="added_time">Added Time</string>
+
+    <string name="audio_info">Audio Info</string>
+    <string name="audio_tags">Audio Tags</string>
 
     <string name="greeting_morning">Good morning, %s</string>
     <string name="greeting_noon">Wish you a good day, %s</string>
@@ -78,14 +125,28 @@
     <string name="setup_welcome_desc">
         Let\'s start by setting up some things, we will guide you through the process.
     </string>
+    <string name="setup_profile_title">Profile</string>
+    <string name="setup_profile_desc">
+        Fill in your profile, this will be used for some features of &appName;.
+        All data will be stored and processed on your device.
+    </string>
     <string name="setup_permission_title">Permission</string>
-    <string name="setup_permission_desc">&appName; needs some permissions to work properly.</string>
-    <string name="setup_permission_storage_title">Storage</string>
-    <string name="setup_permission_storage_desc">&appName; needs access to your storage to read music files.</string>
+    <string name="setup_permission_desc">
+        &appName; may need some permissions to work as expected.
+        However, none of the following permissions are required,
+        you can follow the permission description and choose according to your needs.
+    </string>
+    <string name="setup_permission_desc_none">
+        &appName; works perfectly on your device without any permissions!
+    </string>
     <string name="setup_permission_notification_title">Notification</string>
     <string name="setup_permission_notification_desc">&appName; needs access to your notifications to show the current playing song.</string>
     <string name="setup_audio_scan_title">Audio Scan</string>
-    <string name="setup_audio_scan_desc">&appName; will scan your audio files, this may take a while.</string>
-    <string name="setup_complete_title">Setup Complete! 🎉</string>
-    <string name="setup_complete_desc">You have successfully set up &appName;. Enjoy the music!</string>
+    <string name="setup_audio_scan_desc">
+        Scan audio files on your device, scanning may take some time.
+        You need to select the scan location first and click the \"Scan\" button,
+        after the scan starts, you can click the \"Continue\" button, &appName; will continue scanning in the background.
+    </string>
+    <string name="setup_complete_title">Setup Complete! </string>
+    <string name="setup_complete_desc">You have successfully set up &appName;.\nEnjoy the music!</string>
 </resources>
