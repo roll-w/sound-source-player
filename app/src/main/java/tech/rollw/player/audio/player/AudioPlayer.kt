@@ -16,7 +16,6 @@
 
 package tech.rollw.player.audio.player
 
-import androidx.annotation.IntDef
 import tech.rollw.player.audio.AudioContent
 
 /**
@@ -38,8 +37,7 @@ interface AudioPlayer {
 
     val playerState: PlayerState
 
-    @PlaybackState
-    val playbackState: Int
+    val playbackState: PlaybackState
 
     fun setAudioVolume(left: Float, right: Float = left)
 
@@ -53,14 +51,18 @@ interface AudioPlayer {
 
     val position: Long
 
-    enum class PlayerState {
-        IDLE,
-        PREPARED,
-        PLAYING,
-        PAUSED,
-        STOPPED,
-        RELEASED;
+    interface Listener {
+        fun onPlaybackStateChanged(state: PlaybackState) {}
 
+        fun onPlayerStateChanged(state: PlayerState) {}
+    }
+
+    fun addListener(listener: Listener)
+
+    fun removeListener(listener: Listener)
+
+    @JvmInline
+    value class PlayerState private constructor(private val state: Int) {
         fun isPlaying(): Boolean {
             return this == PLAYING
         }
@@ -68,26 +70,46 @@ interface AudioPlayer {
         fun isPaused(): Boolean {
             return this != PLAYING
         }
+
+        override fun toString(): String = when (state) {
+            0 -> "IDLE"
+            1 -> "PREPARED"
+            2 -> "PLAYING"
+            3 -> "PAUSED"
+            4 -> "STOPPED"
+            5 -> "RELEASED"
+            else -> "UNKNOWN"
+        }
+
+        companion object {
+            val IDLE = PlayerState(0)
+            val PREPARED = PlayerState(1)
+            val PLAYING = PlayerState(2)
+            val PAUSED = PlayerState(3)
+            val STOPPED = PlayerState(4)
+            val RELEASED = PlayerState(5)
+        }
     }
 
-    @IntDef(
-        PlaybackState.IDLE,
-        PlaybackState.BUFFERING,
-        PlaybackState.PLAYING,
-        PlaybackState.PAUSED,
-        PlaybackState.ENDED,
-        PlaybackState.STOPPED
-    )
-    @Retention(AnnotationRetention.SOURCE)
-    @MustBeDocumented
-    annotation class PlaybackState {
+    @JvmInline
+    value class PlaybackState private constructor(private val state: Int) {
+        override fun toString(): String = when (state) {
+            0 -> "IDLE"
+            1 -> "BUFFERING"
+            2 -> "PLAYING"
+            3 -> "PAUSED"
+            4 -> "ENDED"
+            5 -> "STOPPED"
+            else -> "UNKNOWN"
+        }
+
         companion object {
-            const val IDLE = 0
-            const val BUFFERING = 1
-            const val PLAYING = 2
-            const val PAUSED = 3
-            const val ENDED = 4
-            const val STOPPED = 5
+            val IDLE = PlaybackState(0)
+            val BUFFERING = PlaybackState(1)
+            val PLAYING = PlaybackState(2)
+            val PAUSED = PlaybackState(3)
+            val ENDED = PlaybackState(4)
+            val STOPPED = PlaybackState(5)
         }
     }
 }
