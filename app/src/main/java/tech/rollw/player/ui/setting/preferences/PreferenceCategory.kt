@@ -31,15 +31,15 @@ import tech.rollw.player.ui.PlayerTheme
 
 
 fun PreferenceScreenScope.preferenceCategory(
+    title: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     key: String? = null,
-    icon: @Composable (() -> Unit)? = null,
-    title: @Composable () -> Unit
+    icon: @Composable (() -> Unit)? = null
 ) {
     item(key = key, contentType = "PreferenceCategory") {
         PreferenceCategory(
-            modifier = modifier,
-            title = title
+            title = title,
+            modifier = modifier
         )
     }
 }
@@ -53,10 +53,11 @@ private val PreferenceCategoryPadding = PaddingValues(
 
 @Composable
 fun PreferenceCategory(
+    title: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     padding: PaddingValues = PreferenceCategoryPadding,
     contentTypography: ContentTypography = PlayerTheme.typography.contentMedium,
-    title: @Composable () -> Unit
+    icon: @Composable (() -> Unit)? = null
 ) {
     BasicPreference(
         text = {
@@ -74,7 +75,10 @@ fun PreferenceCategory(
                 }
             }
         },
-        modifier = modifier
+        modifier = modifier,
+        icon = {
+            icon?.invoke()
+        }
     )
 }
 

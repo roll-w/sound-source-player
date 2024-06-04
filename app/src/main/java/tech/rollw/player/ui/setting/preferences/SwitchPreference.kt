@@ -19,7 +19,7 @@ package tech.rollw.player.ui.setting.preferences
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -34,7 +34,7 @@ import tech.rollw.player.ui.ContentTypography
 import tech.rollw.player.ui.LocalContentTypography
 import tech.rollw.player.ui.PlayerTheme
 
-fun PreferenceScreenScope.checkboxPreference(
+fun PreferenceScreenScope.switchPreference(
     state: MutableState<Boolean>,
     title: @Composable (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -46,10 +46,10 @@ fun PreferenceScreenScope.checkboxPreference(
     summary: @Composable ((Boolean) -> Unit)? = null,
     bottomWidget: @Composable ((Boolean) -> Unit)? = null
 ) {
-    item(key = key, contentType = "CheckboxPreference") {
+    item(key = key, contentType = "SwitchPreference") {
         val contentTypography = LocalContentTypography.current
         val value by state
-        CheckboxPreference(
+        SwitchPreference(
             state = state,
             title = { title(value) },
             modifier = modifier,
@@ -65,7 +65,7 @@ fun PreferenceScreenScope.checkboxPreference(
 }
 
 @Composable
-fun CheckboxPreference(
+fun SwitchPreference(
     state: MutableState<Boolean>,
     title: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -78,7 +78,7 @@ fun CheckboxPreference(
     bottomWidget: @Composable (() -> Unit)? = null
 ) {
     var value by state
-    CheckboxPreference(
+    SwitchPreference(
         value = value,
         onValueChange = { value = it },
         title = title,
@@ -94,7 +94,7 @@ fun CheckboxPreference(
 }
 
 @Composable
-fun CheckboxPreference(
+fun SwitchPreference(
     value: Boolean,
     onValueChange: (Boolean) -> Unit,
     title: @Composable () -> Unit,
@@ -114,7 +114,7 @@ fun CheckboxPreference(
             .toggleable(
                 value = value,
                 enabled = enabled,
-                role = Role.Checkbox,
+                role = Role.Switch,
                 onValueChange = onValueChange
             ),
         enabled = enabled,
@@ -123,7 +123,7 @@ fun CheckboxPreference(
         icon = icon,
         summary = summary,
         endWidget = {
-            Checkbox(
+            Switch(
                 checked = value,
                 onCheckedChange = null,
                 modifier = Modifier.padding(
