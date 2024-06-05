@@ -16,7 +16,9 @@
 
 package tech.rollw.player.ui.setting.preferences
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -25,6 +27,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -114,20 +117,24 @@ fun Preference(
             )
         },
         endWidget = {
-            endWidget?.invoke()
+            endWidget?.let {
+                PreferenceDefaults.WidgetContainer(
+                    widget = it,
+                    enabled = enabled,
+                    style = contentTypography.body
+                )
+            }
         },
         bottomWidget = {
-            if (bottomWidget != null) {
-                Box(
-                    modifier = Modifier.padding(
-                        padding.copy(
-                            top = padding.calculateTopPadding() / 2,
-                            start = if (icon != null) 0.dp else Dp.Unspecified,
-                        )
-                    ),
-                    contentAlignment = Alignment.CenterStart
+            bottomWidget?.let {
+                PreferenceDefaults.BoxPaddingContainer(
+                    padding = padding
                 ) {
-                    bottomWidget.invoke()
+                    PreferenceDefaults.WidgetContainer(
+                        widget = it,
+                        enabled = enabled,
+                        style = contentTypography.body
+                    )
                 }
             }
         },
@@ -140,7 +147,7 @@ internal object PreferenceDefaults {
 
     val PaddingValues: PaddingValues = PaddingValues(Padding)
 
-    const val DisableOpacity = 0.38f
+    const val DisabledOpacity = 0.38f
 
     @Composable
     fun IconContainer(
@@ -159,7 +166,7 @@ internal object PreferenceDefaults {
             ) {
                 CompositionLocalProvider(
                     LocalContentColor provides PlayerTheme.colorScheme.onSurfaceVariant.let {
-                        if (enabled) it else it.copy(alpha = DisableOpacity)
+                        if (enabled) it else it.copy(alpha = DisabledOpacity)
                     },
                     content = icon
                 )
@@ -173,10 +180,14 @@ internal object PreferenceDefaults {
         enabled: Boolean,
         style: TextStyle = PlayerTheme.typography.contentMedium.subtitle
     ) {
-        CompositionLocalProvider(LocalContentColor provides
-                PlayerTheme.colorScheme.onSurface.let {
-                    if (enabled) it else it.copy(alpha = DisableOpacity)
-                }
+        val color = PlayerTheme.colorScheme.onSurface
+        val alpha by animateFloatAsState(
+            targetValue = if (enabled) color.alpha else DisabledOpacity
+        )
+
+        CompositionLocalProvider(
+            LocalContentColor provides
+                    PlayerTheme.colorScheme.onSurface.copy(alpha = alpha)
         ) {
             ProvideTextStyle(
                 value = style,
@@ -192,10 +203,14 @@ internal object PreferenceDefaults {
         style: TextStyle = PlayerTheme.typography.contentMedium.body
     ) {
         if (summary != null) {
-            CompositionLocalProvider(LocalContentColor provides
-                    PlayerTheme.colorScheme.onSurfaceVariant.let {
-                        if (enabled) it else it.copy(alpha = DisableOpacity)
-                    }
+            val color = PlayerTheme.colorScheme.onSurfaceVariant
+            val alpha by animateFloatAsState(
+                targetValue = if (enabled) color.alpha else DisabledOpacity
+            )
+
+            CompositionLocalProvider(
+                LocalContentColor provides
+                        PlayerTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)
             ) {
                 ProvideTextStyle(
                     value = style,
@@ -203,6 +218,44 @@ internal object PreferenceDefaults {
                 )
             }
         }
+    }
+
+    @Composable
+    fun WidgetContainer(
+        widget: @Composable () -> Unit,
+        enabled: Boolean,
+        style: TextStyle = PlayerTheme.typography.contentMedium.body
+    ) {
+        val color = PlayerTheme.colorScheme.onSurfaceVariant
+        val alpha by animateFloatAsState(
+            targetValue = if (enabled) color.alpha else DisabledOpacity
+        )
+        CompositionLocalProvider(
+            LocalContentColor provides
+                    PlayerTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)
+        ) {
+            ProvideTextStyle(
+                value = style,
+                content = widget
+            )
+        }
+    }
+
+    @Composable
+    internal fun BoxPaddingContainer(
+        padding: PaddingValues,
+        modifier: Modifier = Modifier,
+        content: @Composable BoxScope.() -> Unit
+    ) {
+        Box(
+            modifier = modifier.padding(
+                padding.copy(
+                    top = padding.calculateTopPadding() / 2,
+                )
+            ),
+            contentAlignment = Alignment.CenterStart,
+            content = content
+        )
     }
 }
 
