@@ -27,8 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import tech.rollw.player.ui.ContentTypography
+import tech.rollw.player.ui.LocalContentTypography
 import tech.rollw.player.ui.PlayerTheme
-
 
 fun PreferenceScreenScope.preferenceCategory(
     title: @Composable () -> Unit,
@@ -37,9 +37,13 @@ fun PreferenceScreenScope.preferenceCategory(
     icon: @Composable (() -> Unit)? = null
 ) {
     item(key = key, contentType = "PreferenceCategory") {
+        val contentTypography = LocalContentTypography.current
+
         PreferenceCategory(
             title = title,
-            modifier = modifier
+            modifier = modifier,
+            contentTypography = contentTypography,
+            icon = icon
         )
     }
 }
