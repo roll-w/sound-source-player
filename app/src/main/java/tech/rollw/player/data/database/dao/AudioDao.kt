@@ -33,9 +33,11 @@ abstract class AudioDao : AutoPrimaryKeyDao<Audio> {
     @Query("SELECT * FROM audio WHERE id = :id")
     abstract override fun getById(id: Long): Audio?
 
+    @Transaction
     @Query("SELECT * FROM audio")
     abstract override fun get(): List<Audio>
 
+    @Transaction
     @Query("SELECT * FROM audio")
     abstract override fun getFlow(): Flow<List<Audio>>
 
@@ -43,7 +45,7 @@ abstract class AudioDao : AutoPrimaryKeyDao<Audio> {
     protected abstract fun insertPaths(paths: List<AudioPath>)
 
     @Transaction
-    open fun insertAudioWithPath(
+    open fun insertAudioWithPaths(
         audio: Audio,
         audioPaths: List<AudioPath>
     ): Long {

@@ -38,4 +38,6 @@ class AudioPathRepository(
 
     fun getById(id: Long): Flow<List<AudioPath>> = (dao as AudioPathDao).getById(id)
 
+    fun getByIdentifier(identifier: String) =
+        (dao as AudioPathDao).getByIdentifier(identifier)
 }

@@ -17,7 +17,6 @@
 package tech.rollw.player.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
@@ -30,10 +29,7 @@ import tech.rollw.support.io.PathType
 @Dao
 abstract class AudioPathDao : PlayerDao<AudioPath> {
     @Insert
-    abstract override fun insert(audioPath: AudioPath)
-
-    @Delete
-    abstract override fun delete(audioPath: AudioPath)
+    abstract override fun insert(entity: AudioPath)
 
     @Query("SELECT * FROM audio_path WHERE id = :audioId")
     abstract fun getById(audioId: Long): Flow<List<AudioPath>>

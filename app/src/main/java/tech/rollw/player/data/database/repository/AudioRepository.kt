@@ -18,6 +18,7 @@ package tech.rollw.player.data.database.repository
 
 import android.content.Context
 import tech.rollw.player.audio.Audio
+import tech.rollw.player.audio.AudioPath
 import tech.rollw.player.data.database.PlayerDatabase
 import tech.rollw.player.data.database.dao.AudioDao
 
@@ -30,4 +31,14 @@ class AudioRepository(
     override fun getDao(database: PlayerDatabase): AudioDao {
         return database.getAudioDao()
     }
+
+    /**
+     * Insert audio with audio paths.
+     *
+     * [AudioPath.id] will automatically be set.
+     */
+    fun insertAudioWithPaths(
+        audio: Audio,
+        audioPaths: List<AudioPath>
+    ) = (dao as AudioDao).insertAudioWithPaths(audio, audioPaths)
 }
