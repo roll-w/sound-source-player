@@ -16,11 +16,11 @@
 
 package tech.rollw.player.ui.setting.preferences
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowOverflow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.dp
 import tech.rollw.player.ui.ContentTypography
 import tech.rollw.player.ui.LocalContentTypography
 import tech.rollw.player.ui.PlayerTheme
@@ -50,7 +49,8 @@ fun <T> PreferenceScreenScope.multiSelectChipsPreference(
     confirmValueChange: (T) -> Boolean = { true },
     maxItemsInEachRow: Int = Int.MAX_VALUE,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: @Composable () -> FlowRowOverflow = { FlowRowOverflow.Clip }
+    overflow: @Composable () -> FlowRowOverflow = { FlowRowOverflow.Clip },
+    onValueChange: (Set<T>) -> Unit = {}
 ) {
     item(key = key, contentType = "MultiSelectChipsPreference") {
         val contentTypography = LocalContentTypography.current
@@ -72,7 +72,8 @@ fun <T> PreferenceScreenScope.multiSelectChipsPreference(
             confirmValueChange = confirmValueChange,
             maxItemsInEachRow = maxItemsInEachRow,
             maxLines = maxLines,
-            overflow = overflow()
+            overflow = overflow(),
+            onValueChange = onValueChange
         )
     }
 }
@@ -95,13 +96,17 @@ fun <T> MultiSelectChipsPreference(
     confirmValueChange: (T) -> Boolean = { true },
     maxItemsInEachRow: Int = Int.MAX_VALUE,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: FlowRowOverflow = FlowRowOverflow.Clip
+    overflow: FlowRowOverflow = FlowRowOverflow.Clip,
+    onValueChange: (Set<T>) -> Unit = {}
 ) {
     var value by state
 
     MultiSelectChipsPreference(
         value = value,
-        onValueChange = { value = it },
+        onValueChange = {
+            value = it
+            onValueChange(it)
+        },
         values = values,
         title = title,
         modifier = modifier,
@@ -155,15 +160,16 @@ fun <T> MultiSelectChipsPreference(
                 modifier = Modifier.fillMaxWidth(),
                 maxItemsInEachRow = maxItemsInEachRow,
                 maxLines = maxLines,
-                overflow = overflow
+                overflow = overflow,
+                horizontalArrangement = Arrangement.spacedBy(
+                    ChipsPreferenceDefaults.HorizontalPadding
+                )
             ) {
                 values.forEach {
                     val selected by derivedStateOf {
                         it in value
                     }
-                    // TODO: add content padding
                     ChipsPreferenceDefaults.Chip(
-                        modifier = Modifier.padding(end = 2.dp, bottom = 1.dp),
                         selected = selected,
                         enabled = if (enabled) optionEnabled(it) else false,
                         onSelected = onClick@{

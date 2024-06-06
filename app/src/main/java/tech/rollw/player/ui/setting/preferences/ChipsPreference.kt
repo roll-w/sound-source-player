@@ -16,18 +16,16 @@
 
 package tech.rollw.player.ui.setting.preferences
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowOverflow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -56,7 +54,8 @@ fun <T> PreferenceScreenScope.chipsPreference(
     confirmValueChange: (T) -> Boolean = { true },
     maxItemsInEachRow: Int = Int.MAX_VALUE,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: @Composable () -> FlowRowOverflow = { FlowRowOverflow.Clip }
+    overflow: @Composable () -> FlowRowOverflow = { FlowRowOverflow.Clip },
+    onValueChange: (T) -> Unit = {}
 ) {
     item(key = key, contentType = "ChipsPreference") {
         val contentTypography = LocalContentTypography.current
@@ -77,7 +76,8 @@ fun <T> PreferenceScreenScope.chipsPreference(
             confirmValueChange = confirmValueChange,
             maxItemsInEachRow = maxItemsInEachRow,
             maxLines = maxLines,
-            overflow = overflow()
+            overflow = overflow(),
+            onValueChange = onValueChange
         )
     }
 }
@@ -100,12 +100,16 @@ fun <T> ChipsPreference(
     confirmValueChange: (T) -> Boolean = { true },
     maxItemsInEachRow: Int = Int.MAX_VALUE,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: FlowRowOverflow = FlowRowOverflow.Clip
+    overflow: FlowRowOverflow = FlowRowOverflow.Clip,
+    onValueChange: (T) -> Unit = {}
 ) {
     var value by state
     ChipsPreference(
         value = value,
-        onValueChange = { value = it },
+        onValueChange = {
+            value = it
+            onValueChange(it)
+        },
         values = values,
         title = title,
         modifier = modifier,
@@ -169,14 +173,14 @@ fun <T> ChipsPreference(
                 modifier = Modifier.fillMaxWidth(),
                 maxItemsInEachRow = maxItemsInEachRow,
                 maxLines = maxLines,
-                overflow = overflow
+                overflow = overflow,
+                horizontalArrangement = Arrangement.spacedBy(
+                    ChipsPreferenceDefaults.HorizontalPadding
+                )
             ) {
                 values.forEach {
-                    val selected by derivedStateOf {
-                        value == it
-                    }
+                    val selected = value == it
                     ChipsPreferenceDefaults.Chip(
-                        modifier = Modifier.padding(end = 2.dp, bottom = 1.dp),
                         selected = selected,
                         enabled = if (enabled) optionEnabled(it) else false,
                         onSelected = {
@@ -197,6 +201,8 @@ fun <T> ChipsPreference(
 internal object ChipsPreferenceDefaults {
     val DefaultShape = ShapeDefaults.Small
 
+    val HorizontalPadding = 6.dp
+
     @Composable
     fun Chip(
         selected: Boolean,
@@ -207,10 +213,6 @@ internal object ChipsPreferenceDefaults {
         contentTypography: ContentTypography = PlayerTheme.typography.contentNormal,
         shape: Shape = DefaultShape
     ) {
-        val alpha by animateFloatAsState(
-            targetValue = if (enabled) 1f else PreferenceDefaults.DisabledOpacity
-        )
-
         FilterChip(
             modifier = modifier,
             shape = shape,
