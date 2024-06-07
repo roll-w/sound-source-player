@@ -57,14 +57,13 @@ class PlayerPreferenceDataStore(
     operator fun <T> get(key: Preferences.Key<T>): T? =
         getValue(key, null)
 
-
-    operator fun <T> get(settingKey: SettingKey<T, *>): Flow<T?> =
+    operator fun <T> get(settingKey: SettingKey<T, *>, defaultValue: T? = null): Flow<T?> =
         dataStore.data.map {
-            it[settingKey.asPreferencesKey()] as T?
+            (it[settingKey.asPreferencesKey()] ?: defaultValue) as T?
         }
 
     operator fun <T> get(settingSpec: SettingSpec<T, *>): Flow<T?> =
-        get(settingSpec.key)
+       this[settingSpec.key, settingSpec.defaultValue]
 
     override fun putString(key: String, value: String?) {
         setValue(stringPreferencesKey(key), value)
@@ -202,7 +201,7 @@ class PlayerPreferenceDataStore(
 
     private val listeners = mutableSetOf<OnPreferenceChangeListener>()
 
-    interface OnPreferenceChangeListener {
+    fun interface OnPreferenceChangeListener {
         fun onPreferenceChange(key: SettingKey<*, *>, value: Any?)
     }
 
