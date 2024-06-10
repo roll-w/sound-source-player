@@ -43,7 +43,7 @@
     <string name="select_all">Select All</string>
     <string name="search">Search</string>
     <string name="setting">Setting</string>
-    <string name="media_store">Media Store</string>
+    <string name="media_library">Media Library</string>
 
     <string name="about">About</string>
     <string name="name">Name</string>
@@ -149,4 +149,8 @@
     </string>
     <string name="setup_complete_title">Setup Complete! </string>
     <string name="setup_complete_desc">You have successfully set up &appName;.\nEnjoy the music!</string>
+
+    <string name="locale_system">System</string>
+    <string name="locale_en">English</string>
+    <string name="locale_zh">Simplified Chinese (简体中文)</string>
 </resources>

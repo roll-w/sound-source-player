@@ -38,7 +38,7 @@
     <string name="select_all">全选</string>
     <string name="search">搜索</string>
     <string name="setting">设置</string>
-    <string name="media_store">媒体库</string>
+    <string name="media_library">媒体库</string>
 
     <string name="about">关于</string>
     <string name="name">名称</string>
@@ -140,4 +140,8 @@
     </string>
     <string name="setup_complete_title">设置完成！</string>
     <string name="setup_complete_desc">您已成功设置&appName;。\n尽情享受音乐吧！</string>
+
+    <string name="locale_system">系统</string>
+    <string name="locale_en">英语（English）</string>
+    <string name="locale_zh">简体中文</string>
 </resources>
