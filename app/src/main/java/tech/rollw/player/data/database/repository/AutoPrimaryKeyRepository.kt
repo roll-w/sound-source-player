@@ -32,5 +32,13 @@ abstract class AutoPrimaryKeyRepository<T>(context: Context) :
 
     fun insertAndReturn(entity: T) = dao.insertAndReturn(entity)
 
+    fun insertAndReturn(entities: List<T>): List<Long> =
+        if (entities.isEmpty()) emptyList()
+        else dao.insertAndReturn(entities)
+
     fun getById(id: Long) = dao.getById(id)
+
+    fun getByIds(ids: List<Long>) = dao.getByIds(ids)
+
+    fun getByIdsFlow(ids: List<Long>) = dao.getByIdsFlow(ids)
 }

@@ -32,7 +32,10 @@ abstract class AudioPathDao : PlayerDao<AudioPath> {
     abstract override fun insert(entity: AudioPath)
 
     @Query("SELECT * FROM audio_path WHERE id = :audioId")
-    abstract fun getById(audioId: Long): Flow<List<AudioPath>>
+    abstract fun getByAudioId(audioId: Long): List<AudioPath>
+
+    @Query("SELECT * FROM audio_path WHERE id = :audioId")
+    abstract fun getByAudioIdFlow(audioId: Long): Flow<List<AudioPath>>
 
     @Query("SELECT * FROM audio_path WHERE path = :path AND type = :type")
     abstract fun getByPath(path: String, type: PathType): AudioPath?

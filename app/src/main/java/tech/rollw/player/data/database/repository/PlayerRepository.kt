@@ -38,15 +38,23 @@ abstract class PlayerRepository<T>(
 
     protected abstract fun getDao(database: PlayerDatabase): PlayerDao<T>
 
-    fun insert(t: T) = dao.insert(t)
+    fun insert(entity: T) = dao.insert(entity)
 
     fun insert(entities : List<T>) = dao.insert(entities)
 
-    fun delete(t: T) = dao.delete(t)
+    fun delete(entity: T) = dao.delete(entity)
 
-    fun update(t: T) = dao.update(t)
+    fun delete(entities: List<T>) = dao.delete(entities)
+
+    fun update(entity: T) = dao.update(entity)
+
+    fun update(entities: List<T>) = dao.update(entities)
 
     fun get(): List<T> = dao.get()
 
     fun getFlow(): Flow<List<T>> = dao.getFlow()
+
+    fun insertOrUpdate(entity: T) = dao.insertOrUpdate(entity)
+
+    fun insertOrUpdate(entities: List<T>) = dao.insertOrUpdate(entities)
 }

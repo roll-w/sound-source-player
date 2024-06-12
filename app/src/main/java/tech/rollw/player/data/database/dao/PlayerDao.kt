@@ -26,19 +26,31 @@ import kotlinx.coroutines.flow.Flow
  * @author RollW
  */
 interface PlayerDao<T> {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insert(entity: T)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insert(entities: List<T>)
 
     @Delete
     fun delete(entity: T)
 
+    @Delete
+    fun delete(entities: List<T>)
+
     @Update
     fun update(entity: T)
 
-    fun get() : List<T>
+    @Update
+    fun update(entities: List<T>)
 
-    fun getFlow() : Flow<List<T>>
+    fun get(): List<T>
+
+    fun getFlow(): Flow<List<T>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertOrUpdate(entity: T)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertOrUpdate(entities: List<T>)
 }
