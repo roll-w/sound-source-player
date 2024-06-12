@@ -16,17 +16,17 @@
 
 package tech.rollw.player.ui.player
 
-import androidx.annotation.IntDef
 import tech.rollw.player.audio.Audio
 import tech.rollw.player.audio.AudioContent
 import java.text.Collator
-import java.util.*
+import java.util.Locale
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 /**
  * @author RollW
  */
+@Suppress("unused")
 object AudioUtils {
     fun Long.formatDuration() = this.toDuration(DurationUnit.MILLISECONDS)
         .toComponents { minutes, seconds, _ ->
@@ -54,11 +54,11 @@ object AudioUtils {
     }
 
     fun List<Audio>.sortBy(
-        @AudioOrder order: Int,
+        order: AudioOrder,
         reverse: Boolean = false
     ): List<Audio> {
         return when (order) {
-            AudioOrder.ORDER_TITLE ->
+            AudioOrder.Title ->
                 sortedWith(
                     TitleComparator
                         .thenComparing(ArtistComparator)
@@ -66,23 +66,23 @@ object AudioUtils {
                         .thenComparing(LastModifiedComparator)
                 )
 
-            AudioOrder.ORDER_ARTIST -> sortedWith(
+            AudioOrder.Artist -> sortedWith(
                 ArtistComparator
                     .thenComparing(TitleComparator)
                     .thenComparing(AlbumComparator)
                     .thenComparing(LastModifiedComparator)
             )
 
-            AudioOrder.ORDER_ALBUM -> sortedWith(
+            AudioOrder.Album -> sortedWith(
                 AlbumComparator
                     .thenComparing(TitleComparator)
                     .thenComparing(ArtistComparator)
                     .thenComparing(LastModifiedComparator)
             )
 
-            AudioOrder.ORDER_DURATION -> sortedBy { it.duration }
-            AudioOrder.ORDER_YEAR -> sortedBy { it.year }
-            AudioOrder.ORDER_LAST_MODIFIED -> sortedWith(
+            AudioOrder.Duration -> sortedBy { it.duration }
+            AudioOrder.Year -> sortedBy { it.year }
+            AudioOrder.LastModified -> sortedWith(
                 LastModifiedComparator
                     .thenComparing(TitleComparator)
                     .thenComparing(ArtistComparator)
@@ -95,7 +95,7 @@ object AudioUtils {
 
     @JvmName("sortByAudioContent")
     fun List<AudioContent>.sortBy(
-        @AudioOrder order: Int,
+        order: AudioOrder,
         reverse: Boolean = false
     ): List<AudioContent> {
         // AudioContent is a wrapper class for Audio, so we can use the same logic
@@ -107,23 +107,20 @@ object AudioUtils {
     }
 }
 
-
-@IntDef(
-    AudioOrder.ORDER_TITLE,
-    AudioOrder.ORDER_ARTIST,
-    AudioOrder.ORDER_ALBUM,
-    AudioOrder.ORDER_DURATION,
-    AudioOrder.ORDER_YEAR,
-    AudioOrder.ORDER_LAST_MODIFIED
-)
-annotation class AudioOrder{
+@JvmInline
+value class AudioOrder private constructor(private val value: Int) {
 
     companion object {
-        const val ORDER_TITLE = 0
-        const val ORDER_ARTIST = 1
-        const val ORDER_ALBUM = 2
-        const val ORDER_DURATION = 3
-        const val ORDER_YEAR = 4
-        const val ORDER_LAST_MODIFIED = 5
+        val Title = AudioOrder(0)
+
+        val Artist = AudioOrder(1)
+
+        val Album = AudioOrder(2)
+
+        val Duration = AudioOrder(3)
+
+        val Year = AudioOrder(4)
+
+        val LastModified = AudioOrder(5)
     }
 }
