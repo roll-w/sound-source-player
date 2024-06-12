@@ -17,6 +17,7 @@
 package tech.rollw.player.data.database.dao
 
 import androidx.room.Insert
+import kotlinx.coroutines.flow.Flow
 
 /**
  * @author RollW
@@ -25,5 +26,12 @@ interface AutoPrimaryKeyDao<T> : PlayerDao<T> {
     @Insert
     fun insertAndReturn(entity: T): Long
 
+    @Insert
+    fun insertAndReturn(entities: List<T>): List<Long>
+
     fun getById(id: Long): T?
+
+    fun getByIds(ids: List<Long>): List<T>
+
+    fun getByIdsFlow(ids: List<Long>): Flow<List<T>>
 }
