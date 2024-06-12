@@ -44,6 +44,12 @@ abstract class AudioDao : AutoPrimaryKeyDao<Audio> {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     protected abstract fun insertPaths(paths: List<AudioPath>)
 
+    @Query("SELECT * FROM audio WHERE id IN (:ids)")
+    abstract override fun getByIds(ids: List<Long>): List<Audio>
+
+    @Query("SELECT * FROM audio WHERE id IN (:ids)")
+    abstract override fun getByIdsFlow(ids: List<Long>): Flow<List<Audio>>
+
     @Transaction
     open fun insertAudioWithPaths(
         audio: Audio,

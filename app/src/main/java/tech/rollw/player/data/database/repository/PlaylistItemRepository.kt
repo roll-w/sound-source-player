@@ -18,30 +18,22 @@ package tech.rollw.player.data.database.repository
 
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
-import tech.rollw.player.audio.AudioPath
+import tech.rollw.player.audio.list.PlaylistItem
 import tech.rollw.player.data.database.PlayerDatabase
-import tech.rollw.player.data.database.dao.AudioPathDao
-import tech.rollw.support.io.PathType
+import tech.rollw.player.data.database.dao.PlaylistItemDao
 
 /**
  * @author RollW
  */
-class AudioPathRepository(
+class PlaylistItemRepository(
     context: Context
-) : PlayerRepository<AudioPath>(context) {
+) : AutoPrimaryKeyRepository<PlaylistItem>(context) {
+    override fun getDao(database: PlayerDatabase): PlaylistItemDao =
+        database.getPlaylistItemDao()
 
-    override fun getDao(database: PlayerDatabase): AudioPathDao {
-        return database.getAudioPathDao()
-    }
+    fun getByPlaylist(playlistId: Long): List<PlaylistItem> =
+        (dao as PlaylistItemDao).getByPlaylist(playlistId)
 
-    fun getByPath(path: String, type: PathType) = (dao as AudioPathDao).getByPath(path, type)
-
-    fun getByAudioId(id: Long): List<AudioPath> =
-        (dao as AudioPathDao).getByAudioId(id)
-
-    fun getByAudioIdFlow(id: Long): Flow<List<AudioPath>> =
-        (dao as AudioPathDao).getByAudioIdFlow(id)
-
-    fun getByIdentifier(identifier: String) =
-        (dao as AudioPathDao).getByIdentifier(identifier)
+    fun getByPlaylistFlow(playlistId: Long): Flow<List<PlaylistItem>> =
+        (dao as PlaylistItemDao).getByPlaylistFlow(playlistId)
 }

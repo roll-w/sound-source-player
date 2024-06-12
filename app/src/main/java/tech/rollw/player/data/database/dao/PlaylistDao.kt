@@ -20,12 +20,13 @@ import androidx.room.Dao
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import tech.rollw.player.audio.list.Playlist
+import tech.rollw.player.audio.list.PlaylistType
 
 /**
  * @author RollW
  */
 @Dao
-interface PlaylistDao: AutoPrimaryKeyDao<Playlist> {
+interface PlaylistDao : AutoPrimaryKeyDao<Playlist> {
     @Query("SELECT * FROM playlist WHERE id = :id")
     override fun getById(id: Long): Playlist?
 
@@ -34,4 +35,29 @@ interface PlaylistDao: AutoPrimaryKeyDao<Playlist> {
 
     @Query("SELECT * FROM playlist")
     override fun get(): List<Playlist>
+
+    @Query("SELECT * FROM playlist WHERE name = :name AND type = :type")
+    fun getByName(name: String, type: PlaylistType): Playlist?
+
+    @Query("SELECT * FROM playlist WHERE name = :name AND type = :type")
+    fun getByNameFlow(name: String, type: PlaylistType): Flow<Playlist?>
+
+    @Query("SELECT * FROM playlist WHERE name IN (:names) AND type = :type")
+    fun getByNames(names: Collection<String>, type: PlaylistType): List<Playlist>
+
+    @Query("SELECT * FROM playlist WHERE name IN (:names) AND type = :type")
+    fun getByNamesFlow(names: Collection<String>, type: PlaylistType): Flow<List<Playlist>>
+
+    @Query("SELECT * FROM playlist WHERE type = :type")
+    fun getByType(type: PlaylistType): List<Playlist>
+
+    @Query("SELECT * FROM playlist WHERE type = :type")
+    fun getByTypeFlow(type: PlaylistType): Flow<List<Playlist>>
+
+    @Query("SELECT * FROM playlist WHERE id IN (:ids)")
+    override fun getByIds(ids: List<Long>): List<Playlist>
+
+    @Query("SELECT * FROM playlist WHERE id IN (:ids)")
+    override fun getByIdsFlow(ids: List<Long>): Flow<List<Playlist>>
+
 }

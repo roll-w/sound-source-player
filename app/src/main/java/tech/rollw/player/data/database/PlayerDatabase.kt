@@ -30,6 +30,7 @@ import tech.rollw.player.data.database.dao.AudioDao
 import tech.rollw.player.data.database.dao.AudioPathDao
 import tech.rollw.player.data.database.dao.DateStatisticsDao
 import tech.rollw.player.data.database.dao.PlaylistDao
+import tech.rollw.player.data.database.dao.PlaylistItemDao
 import tech.rollw.player.data.database.dao.StatisticsDao
 import tech.rollw.player.statistics.DateStatistics
 import tech.rollw.player.statistics.Statistics
@@ -60,6 +61,8 @@ abstract class PlayerDatabase : RoomDatabase() {
     abstract fun getStatisticsDao(): StatisticsDao
 
     abstract fun getDateStatisticsDao(): DateStatisticsDao
+
+    abstract fun getPlaylistItemDao(): PlaylistItemDao
 
     companion object {
         @Volatile
