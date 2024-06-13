@@ -40,15 +40,15 @@ abstract class PlayerRepository<T>(
 
     fun insert(entity: T) = dao.insert(entity)
 
-    fun insert(entities : List<T>) = dao.insert(entities)
+    fun insert(entities : Collection<T>) = dao.insert(entities)
 
     fun delete(entity: T) = dao.delete(entity)
 
-    fun delete(entities: List<T>) = dao.delete(entities)
+    fun delete(entities: Collection<T>) = dao.delete(entities)
 
     fun update(entity: T) = dao.update(entity)
 
-    fun update(entities: List<T>) = dao.update(entities)
+    fun update(entities: Collection<T>) = dao.update(entities)
 
     fun get(): List<T> = dao.get()
 
@@ -56,5 +56,5 @@ abstract class PlayerRepository<T>(
 
     fun insertOrUpdate(entity: T) = dao.insertOrUpdate(entity)
 
-    fun insertOrUpdate(entities: List<T>) = dao.insertOrUpdate(entities)
+    fun insertOrUpdate(entities: Collection<T>) = dao.insertOrUpdate(entities)
 }

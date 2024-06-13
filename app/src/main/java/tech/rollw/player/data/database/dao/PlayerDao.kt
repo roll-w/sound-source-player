@@ -30,19 +30,19 @@ interface PlayerDao<T> {
     fun insert(entity: T)
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    fun insert(entities: List<T>)
+    fun insert(entities: Collection<T>)
 
     @Delete
     fun delete(entity: T)
 
     @Delete
-    fun delete(entities: List<T>)
+    fun delete(entities: Collection<T>)
 
     @Update
     fun update(entity: T)
 
     @Update
-    fun update(entities: List<T>)
+    fun update(entities: Collection<T>)
 
     fun get(): List<T>
 
@@ -52,5 +52,5 @@ interface PlayerDao<T> {
     fun insertOrUpdate(entity: T)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertOrUpdate(entities: List<T>)
+    fun insertOrUpdate(entities: Collection<T>)
 }

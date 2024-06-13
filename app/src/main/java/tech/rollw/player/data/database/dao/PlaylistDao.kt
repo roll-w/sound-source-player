@@ -36,6 +36,12 @@ interface PlaylistDao : AutoPrimaryKeyDao<Playlist> {
     @Query("SELECT * FROM playlist")
     override fun get(): List<Playlist>
 
+    @Query("DELETE FROM playlist WHERE id = :id")
+    override fun deleteById(id: Long)
+
+    @Query("DELETE FROM playlist WHERE id IN (:ids)")
+    override fun deleteByIds(ids: Collection<Long>)
+
     @Query("SELECT * FROM playlist WHERE name = :name AND type = :type")
     fun getByName(name: String, type: PlaylistType): Playlist?
 
@@ -55,9 +61,9 @@ interface PlaylistDao : AutoPrimaryKeyDao<Playlist> {
     fun getByTypeFlow(type: PlaylistType): Flow<List<Playlist>>
 
     @Query("SELECT * FROM playlist WHERE id IN (:ids)")
-    override fun getByIds(ids: List<Long>): List<Playlist>
+    override fun getByIds(ids: Collection<Long>): List<Playlist>
 
     @Query("SELECT * FROM playlist WHERE id IN (:ids)")
-    override fun getByIdsFlow(ids: List<Long>): Flow<List<Playlist>>
+    override fun getByIdsFlow(ids: Collection<Long>): Flow<List<Playlist>>
 
 }

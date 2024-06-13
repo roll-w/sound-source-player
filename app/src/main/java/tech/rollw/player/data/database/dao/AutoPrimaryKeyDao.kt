@@ -27,11 +27,15 @@ interface AutoPrimaryKeyDao<T> : PlayerDao<T> {
     fun insertAndReturn(entity: T): Long
 
     @Insert
-    fun insertAndReturn(entities: List<T>): List<Long>
+    fun insertAndReturn(entities: Collection<T>): List<Long>
+
+    fun deleteById(id: Long)
+
+    fun deleteByIds(ids: Collection<Long>)
 
     fun getById(id: Long): T?
 
-    fun getByIds(ids: List<Long>): List<T>
+    fun getByIds(ids: Collection<Long>): List<T>
 
-    fun getByIdsFlow(ids: List<Long>): Flow<List<T>>
+    fun getByIdsFlow(ids: Collection<Long>): Flow<List<T>>
 }

@@ -45,10 +45,16 @@ abstract class AudioDao : AutoPrimaryKeyDao<Audio> {
     protected abstract fun insertPaths(paths: List<AudioPath>)
 
     @Query("SELECT * FROM audio WHERE id IN (:ids)")
-    abstract override fun getByIds(ids: List<Long>): List<Audio>
+    abstract override fun getByIds(ids: Collection<Long>): List<Audio>
 
     @Query("SELECT * FROM audio WHERE id IN (:ids)")
-    abstract override fun getByIdsFlow(ids: List<Long>): Flow<List<Audio>>
+    abstract override fun getByIdsFlow(ids: Collection<Long>): Flow<List<Audio>>
+
+    @Query("DELETE FROM audio WHERE id = :id")
+    abstract override fun deleteById(id: Long)
+
+    @Query("DELETE FROM audio WHERE id IN (:ids)")
+    abstract override fun deleteByIds(ids: Collection<Long>)
 
     @Transaction
     open fun insertAudioWithPaths(

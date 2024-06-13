@@ -18,6 +18,8 @@ package tech.rollw.player.data.database.repository
 
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import tech.rollw.player.audio.list.Playlist
 import tech.rollw.player.audio.list.PlaylistItem
 import tech.rollw.player.data.database.PlayerDatabase
 import tech.rollw.player.data.database.dao.PlaylistItemDao
@@ -34,6 +36,10 @@ class PlaylistItemRepository(
     fun getByPlaylist(playlistId: Long): List<PlaylistItem> =
         (dao as PlaylistItemDao).getByPlaylist(playlistId)
 
-    fun getByPlaylistFlow(playlistId: Long): Flow<List<PlaylistItem>> =
-        (dao as PlaylistItemDao).getByPlaylistFlow(playlistId)
+    fun getByPlaylistFlow(playlistId: Long): Flow<List<PlaylistItem>> {
+        if (playlistId == Playlist.EMPTY.id) {
+            return emptyFlow()
+        }
+        return (dao as PlaylistItemDao).getByPlaylistFlow(playlistId)
+    }
 }
