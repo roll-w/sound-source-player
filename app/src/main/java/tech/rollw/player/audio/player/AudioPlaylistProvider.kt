@@ -83,14 +83,14 @@ interface AudioPlaylistProvider {
          * The value should be [String].
          */
         const val EXTRA_CHANGE_SOURCE = "AudioPlaylistProvider.EXTRA_CHANGE_SOURCE"
-    }
-}
 
-fun AudioPlaylistProvider.resetEmptyPlaylist(extras: Bundle? = null) {
-    setPlaylist(
-        playlist = emptyList(),
-        playlistInfo = Playlist.EMPTY,
-        index = 0,
-        extras = extras
-    )
+        fun AudioPlaylistProvider.resetEmptyPlaylist(extras: Bundle? = null) {
+            setPlaylist(
+                playlist = emptyList(),
+                playlistInfo = Playlist.EMPTY,
+                index = 0,
+                extras = extras
+            )
+        }
+    }
 }
