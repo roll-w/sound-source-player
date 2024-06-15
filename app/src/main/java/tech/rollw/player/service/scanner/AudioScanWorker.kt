@@ -32,10 +32,14 @@ import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.Operation
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import tech.rollw.player.R
 import tech.rollw.player.audio.Audio
@@ -46,14 +50,17 @@ import tech.rollw.player.audio.toAudio
 import tech.rollw.player.audio.toAudioPath
 import tech.rollw.player.data.database.repository.AudioPathRepository
 import tech.rollw.player.data.database.repository.AudioRepository
-import tech.rollw.player.getApplicationService
 import tech.rollw.player.service.NotificationChannels
 import tech.rollw.player.service.WorkerDefaults
 import tech.rollw.player.service.WorkerNotificationProvider
 import tech.rollw.player.ui.SplashActivity
+import tech.rollw.player.ui.applicationService
 import tech.rollw.support.StringUtils.getSuffix
+import tech.rollw.support.analytics.Analytics
+import tech.rollw.support.analytics.AnalyticsEvent
 import tech.rollw.support.appcompat.openFileDescriptor
-import tech.rollw.support.io.toContentPath
+import tech.rollw.support.io.ContentPath.Companion.toContentPath
+import tech.rollw.support.io.PathType
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -71,17 +78,9 @@ class AudioScanWorker(
     private val notificationProvider = WorkerNotificationProvider(
         context, channelConfig
     )
-    private val audioRepository = context.getApplicationService(
-        AudioRepository::class.java
-    ) {
-        AudioRepository(context)
-    }
-
-    private val audioPathRepository = context.getApplicationService(
-        AudioPathRepository::class.java
-    ) {
-        AudioPathRepository(context)
-    }
+    private val audioRepository by context.applicationService<AudioRepository>()
+    private val audioPathRepository by context.applicationService<AudioPathRepository>()
+    private val analytics by context.applicationService<Analytics>()
 
     override suspend fun doWork(): Result {
         return withContext(Dispatchers.IO) {
@@ -92,7 +91,12 @@ class AudioScanWorker(
 
             setScanProgress(1)
             try {
-                return@withContext executeWork()
+                return@withContext try {
+                    executeWork()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to scan audio", e)
+                    Result.failure()
+                }
             } finally {
                 setScanProgress(100)
             }
@@ -129,12 +133,34 @@ class AudioScanWorker(
         } ?: return Result.success()
         val start = System.currentTimeMillis()
         val audioPaths = collectUris(uris)
+        val collectTime = System.currentTimeMillis()
+
+        val existedPaths = audioPathRepository.get()
+
         setScanProgress(20)
-        scanAudioTags(audioPaths) { audio ->
-            audio ?: return@scanAudioTags
-            // TODO: could show a notification for each audio
-        }
+        val audios = scanAudioTags(audioPaths)
+        setScanProgress(90)
+
+        val nonExistedPaths = selectNonExistedPaths(audioPaths, existedPaths)
+        val nonExistedAudioIds = nonExistedPaths.map { it.id }
+
+        audioRepository.deleteByIds(nonExistedAudioIds)
+        audioPathRepository.delete(nonExistedPaths)
+
         val end = System.currentTimeMillis()
+
+        analytics.logEvent(
+            AnalyticsEvent(
+                "audio_scan",
+                listOf(
+                    AnalyticsEvent.Param("collect_count", audioPaths.size.toString()),
+                    AnalyticsEvent.Param("audio_count", audios.size.toString()),
+                    AnalyticsEvent.Param("collect_time", (collectTime - start).toString()),
+                    AnalyticsEvent.Param("scan_time", (end - collectTime).toString())
+                )
+            )
+        )
+
         totalCounter.set(end - start)
         return Result.success(
             workDataOf(
@@ -143,16 +169,41 @@ class AudioScanWorker(
         )
     }
 
-    private fun collectUris(uris: List<Uri>): Map<String, List<Uri>> {
+    private fun selectNonExistedPaths(
+        audioPaths: Map<String, List<Uri>>,
+        existedPaths: List<AudioPath>
+    ): List<AudioPath> {
+        return existedPaths.mapNotNull {
+            val uris = audioPaths[it.identifier] ?: return@mapNotNull it
+            val nonExisted = uris.none { uri ->
+                it.path.type == PathType.URI && it.path.path == uri.toString()
+            }
+            if (nonExisted) {
+                return@mapNotNull it
+            }
+            null
+        }
+    }
+
+    /**
+     * @return A map of audio identifier to a list of uris.
+     */
+    private suspend fun collectUris(uris: List<Uri>): Map<String, List<Uri>> {
         val audioPaths = mutableMapOf<String, MutableList<Uri>>()
 
-        fun addPathIfAudio(file: DocumentFile) {
+        suspend fun addPathIfAudio(file: DocumentFile) {
             if (file.isDirectory) {
-                file.listFiles().forEach {
-                    addPathIfAudio(it)
+                val files = file.listFiles()
+                coroutineScope {
+                    files.map {
+                        async {
+                            addPathIfAudio(it)
+                        }
+                    }.awaitAll()
                 }
                 return
             }
+
             val identifier = getIdentifier(file.uri)
             val suffix = identifier.getSuffix()
             // check if it's an audio file by its extension
@@ -161,29 +212,35 @@ class AudioScanWorker(
             list.add(file.uri)
         }
 
-        for (uri in uris) {
-            val file = DocumentFile.fromTreeUri(context, uri) ?: continue
-            addPathIfAudio(file)
+        coroutineScope {
+            uris.map {
+                async {
+                    val file = DocumentFile.fromTreeUri(context, it) ?: return@async
+                    addPathIfAudio(file)
+                }
+            }.awaitAll()
         }
         return audioPaths
     }
 
-    // TODO: coroutine scan audio tags
-    private fun scanAudioTags(
+    private suspend fun scanAudioTags(
         audioPaths: Map<String, List<Uri>>,
         onScan: (Audio?) -> Unit = {}
-    ) {
-        audioPaths.forEach { (identifier, uris) ->
+    ) = coroutineScope {
+        audioPaths.mapNotNull { (identifier, uris) ->
             val audioFormatType = AudioFormatType
                 .fromExtensionOrNull(identifier.getSuffix())
-                ?: return@forEach
-            val audio = scanAudioTag(
-                uris,
-                identifier,
-                audioFormatType
-            )
-            onScan(audio)
-        }
+                ?: return@mapNotNull null
+            async {
+                val audio = scanAudioTag(
+                    uris,
+                    identifier,
+                    audioFormatType
+                )
+                onScan(audio)
+                audio
+            }
+        }.awaitAll()//.filterNotNull()
     }
 
     private fun scanAudioTag(
@@ -208,9 +265,7 @@ class AudioScanWorker(
         audioReadResult: AudioReadResult,
         identifier: String
     ): Audio? {
-        if (audioReadResult.audio == null ||
-            audioReadResult.validUris.isEmpty()
-        ) {
+        if (audioReadResult.audio == null) {
             return null
         }
         val audio = audioReadResult.audio
@@ -222,7 +277,7 @@ class AudioScanWorker(
             POLICY_NONE -> audio
 
             POLICY_INSERT -> {
-                val id = audioRepository.insertAudioWithPath(audio, paths)
+                val id = audioRepository.insertAudioWithPaths(audio, paths)
                 audio.copy(id = id)
             }
 
@@ -250,7 +305,10 @@ class AudioScanWorker(
             tryOpenFileDescriptorOf(it)
         }
         if (pfd == null) {
-            Log.w(TAG, "Failed to open file descriptor: $identifier. None of the uris is valid.")
+            Log.w(
+                TAG,
+                "Failed to open file descriptor: $identifier. None of the uris is valid."
+            )
             return AudioReadResult.EMPTY
         }
         val existPaths = getAudioPathsByIdentifier(identifier)
@@ -277,9 +335,16 @@ class AudioScanWorker(
             return AudioReadResult(existAudio, validUris)
         }
 
+        val newUris = validUris.filter { uri ->
+            val existPath = existPaths.find {
+                it.path.path == uri.toString()
+            }
+            existPath == null
+        }
+
         val audio = audioTag.toAudio(existId, timestamp)
         return AudioReadResult(
-            audio, validUris,
+            audio, newUris,
             policy = if (existAudio != null)
                 POLICY_UPDATE
             else POLICY_INSERT
@@ -352,29 +417,11 @@ class AudioScanWorker(
             ) {
                 setContentIntent(pendingIntent)
                 if (progress.get() == 100) {
-                   setAutoCancel(true)
+                    setAutoCancel(true)
                 }
             }
         )
     }
-
-    private class Tracer(
-        private val start: Long = System.currentTimeMillis()
-    ) {
-        // TODO: audio worker tracer
-        private var end: Long = 0
-
-        fun onFailed(
-            uri: Uri,
-            e: Exception?
-        ) {
-        }
-
-        fun end() {
-            end = System.currentTimeMillis()
-        }
-    }
-
 
     companion object {
         private const val TAG = WorkerDefaults.TAG_AUDIO_SCAN_WORKER
@@ -383,20 +430,29 @@ class AudioScanWorker(
         private const val KEY_FILTER_PATHS = "filter_paths"
         private const val KEY_URIS = "uris"
 
+        val WORKER_SPEC = WorkerDefaults.AudioScanWorkerSpec
+
         /**
-         * The key for the audio length threshold.
+         * The key for the audio length threshold. Only audios with
+         * length greater than this value will be scanned.
          *
-         * The value is long and represents the audio length in milliseconds.
+         * The value is [Long] type and represents the audio length
+         * in milliseconds.
          */
         private const val KEY_AUDIO_LENGTH_THRESHOLD = "audio_length_threshold"
 
+        /**
+         * Submit work with default parameters.
+         *
+         * @see [submitWork]
+         */
         @JvmStatic
-        fun submitWork(context: Context) {
+        fun submitWork(context: Context): Operation {
             val rwUris = mutableListOf<Uri>()
             context.contentResolver.persistedUriPermissions.forEach {
                 rwUris.add(it.uri)
             }
-            submitWork(context, rwUris)
+            return submitWork(context, rwUris)
         }
 
         @JvmStatic
@@ -404,7 +460,7 @@ class AudioScanWorker(
             context: Context, uris: List<Uri>,
             filterPaths: List<String> = emptyList(),
             audioLengthThreshold: Long = 0
-        ) {
+        ): Operation {
             val uriStrings = uris.map { it.toString() }
 
             val data = workDataOf(
@@ -416,8 +472,14 @@ class AudioScanWorker(
                 .addTag(TAG)
                 .setInputData(data)
                 .build()
-            WorkManager.getInstance(context)
+
+            val classifyWorkRequest = OneTimeWorkRequestBuilder<AudioClassifyWorker>()
+                .addTag(AudioClassifyWorker.WORKER_SPEC.tag)
+                .build()
+
+            return WorkManager.getInstance(context)
                 .beginUniqueWork(TAG, ExistingWorkPolicy.KEEP, workRequest)
+                .then(classifyWorkRequest)
                 .enqueue()
         }
 
