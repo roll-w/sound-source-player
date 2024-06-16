@@ -27,13 +27,27 @@ import tech.rollw.player.audio.player.AudioPlaylistProvider
 class PlaylistViewModelUpdater(
     private val playlistViewModel: PlaylistViewModel
 ) : AudioPlaylistProvider.OnAudioPlaylistListener {
+    private var audioPlaylistProvider: AudioPlaylistProvider? = null
+
     fun init(audioPlaylistProvider: AudioPlaylistProvider) {
+        if (this.audioPlaylistProvider != null &&
+            this.audioPlaylistProvider != audioPlaylistProvider
+        ) {
+            release()
+        }
+
+        this.audioPlaylistProvider = audioPlaylistProvider
         audioPlaylistProvider.addOnAudioPlaylistListener(this)
         playlistViewModel.setPlaylist(
             audioPlaylistProvider.playlistInfo,
             audioPlaylistProvider.playlist,
             audioPlaylistProvider.index
         )
+    }
+
+    fun release() {
+        audioPlaylistProvider?.removeOnAudioPlaylistListener(this)
+        audioPlaylistProvider = null
     }
 
     override fun onPlaylistChanged(

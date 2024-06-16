@@ -36,9 +36,16 @@ class PlayerViewModelUpdater(
     fun init(player: Player) {
         this.player = player
         player.addListener(this)
-        playerViewModel.setPlaying(player.isPlaying)
+        onPlay(player.isPlaying)
     }
 
+    fun release() {
+        if (!this::player.isInitialized) {
+            return
+        }
+        player.removeListener(this)
+        handler.removeCallbacksAndMessages(null)
+    }
 
     override fun onPositionDiscontinuity(
         oldPosition: Player.PositionInfo,
@@ -52,8 +59,7 @@ class PlayerViewModelUpdater(
         delay: Long,
         player: Player
     ): Boolean = handler.postDelayed({
-        val currentPosition = player.currentPosition
-        playerViewModel.setAudioPosition(currentPosition)
+        playerViewModel.setAudioPosition(player.currentPosition)
         checkPlaybackPosition(delay, player)
     }, delay)
 
@@ -69,6 +75,7 @@ class PlayerViewModelUpdater(
 
     private fun onPlay(playing: Boolean) {
         playerViewModel.setPlaying(playing)
+        playerViewModel.setAudioPosition(player.currentPosition)
         if (playing) {
             checkPlaybackPosition(delayMilliseconds, player)
         } else {
