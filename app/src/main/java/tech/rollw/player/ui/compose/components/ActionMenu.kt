@@ -72,7 +72,7 @@ object ActionMenuDefaults {
     }
 }
 
-private const val ItemAnimationDurationMillis: Int = 100
+private const val ItemAnimationDurationMillis: Int = 500
 
 private val ActionMenuHeight: Dp = 60.0.dp
 
