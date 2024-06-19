@@ -77,20 +77,29 @@ class SettingValue<T, V>(
         }
     }
 
-    private var _valueFlow : Flow<T?>? = null
+    private var _valueFlow: Flow<T?>? = null
 
-    fun asFlow() : Flow<T?> {
+    fun asFlow(): Flow<T?> {
         val preferenceDataStore = context.preferenceDataStore
         if (_valueFlow == null) {
             _valueFlow = preferenceDataStore[spec].distinctUntilChanged()
         }
         return _valueFlow!!
     }
-}
 
-fun Context.settingValue(
-    spec: SettingSpec<*, *>,
-    allowAnyValue: Boolean = false
-): SettingValue<*, *> {
-    return SettingValue(spec, this, allowAnyValue)
+    companion object {
+        fun <T, V> SettingSpec<T, V>.value(
+            context: Context,
+            allowAnyValue: Boolean = this.allowAnyValue()
+        ): SettingValue<T, V> {
+            return SettingValue(this, context, allowAnyValue)
+        }
+
+        fun Context.settingValue(
+            spec: SettingSpec<*, *>,
+            allowAnyValue: Boolean = false
+        ): SettingValue<*, *> {
+            return SettingValue(spec, this, allowAnyValue)
+        }
+    }
 }
