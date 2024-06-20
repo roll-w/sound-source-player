@@ -20,6 +20,10 @@ import java.io.File
 import java.util.regex.Pattern
 
 /**
+ * Parse the lrc string to [Lyric].
+ *
+ * [LRC Format](https://en.wikipedia.org/wiki/LRC_(file_format))
+ *
  * @author RollW
  */
 class LyricParser(
@@ -27,12 +31,7 @@ class LyricParser(
 ) {
     private val lines = lyric.lines()
 
-    private val rows = mutableListOf<LyricRow>()
-
-    fun parse(): List<LyricRow> {
-        if (rows.isNotEmpty()) {
-            return rows
-        }
+    fun parse(): Lyric {
         val parsed = mutableListOf<LyricRow>()
         lines.forEach {
             val row = parseLine(it)
@@ -40,8 +39,8 @@ class LyricParser(
                 parsed.add(row)
             }
         }
-        rows.addAll(collapseRows(parsed))
-        return rows
+        val collapsed = collapseRows(parsed)
+        return Lyric(listOf(), collapsed)
     }
 
     private fun collapseRows(rows: MutableList<LyricRow>): List<LyricRow> {
@@ -67,11 +66,21 @@ class LyricParser(
         if (line.isEmpty()) {
             return null
         }
+        if (line.startsWith(TAG_PREFIX) && line.endsWith(TAG_SUFFIX)) {
+            // ignore the tag line for now
+            // TODO: parse the tag line to get offset
+            return null
+        }
+
         val timestampMatcher = TIMESTAMP_PATTEN.matcher(line)
         if (!timestampMatcher.find()) {
             return LyricRow(line, LyricRow.INVALID_TIMESTAMP, line)
         }
-        val timestamp = parseTimestamp(timestampMatcher.group())
+        val timestamp = parseTimestamp(
+            timestampMatcher.group()
+                .removePrefix(TAG_PREFIX)
+                .removeSuffix(TAG_SUFFIX)
+        )
         if (timestamp < 0) {
             return LyricRow(line, LyricRow.INVALID_TIMESTAMP, line)
         }
@@ -79,10 +88,15 @@ class LyricParser(
         return LyricRow(line, timestamp, lyric)
     }
 
+
+    private fun parseIdTag(tagLine: String): Pair<String, String> {
+
+
+        return Pair("", "")
+    }
+
     private fun parseTimestamp(timestamp: String): Long {
         val times = timestamp
-            .removePrefix("[")
-            .removeSuffix("]")
             .replace('.', ':')
             .split(":")
             .toTypedArray()
@@ -102,9 +116,11 @@ class LyricParser(
     companion object {
         private const val TAG = "LyricParser"
 
+        private const val TAG_PREFIX = "["
+        private const val TAG_SUFFIX = "]"
+
         private const val TIMESTAMP_REGEX = "\\[\\d*?:\\d*\\.\\d*]"
         private val TIMESTAMP_PATTEN: Pattern = Pattern.compile(TIMESTAMP_REGEX)
-
 
         fun createFrom(audioTag: AudioTag): LyricParser? {
             val lyric = audioTag.getTagField(AudioTagField.LYRICS) ?: return null
