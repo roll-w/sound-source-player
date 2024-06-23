@@ -18,6 +18,7 @@ package tech.rollw.player.service
 
 import android.content.Context
 import tech.rollw.player.R
+import tech.rollw.player.service.scanner.AudioClassificationWorker
 import tech.rollw.player.service.scanner.AudioScanWorker
 
 /**
@@ -36,6 +37,7 @@ object WorkerDefaults {
     const val KEY_NAME = "name"
 
     const val TAG_AUDIO_SCAN_WORKER = "AudioScanWorker"
+    const val TAG_AUDIO_CLASSIFICATION_WORKER = "AudioClassificationWorker"
 
     val AudioScanWorkerSpec: WorkerSpec = ResourceWorkerSpec(
         TAG_AUDIO_SCAN_WORKER,
@@ -43,8 +45,15 @@ object WorkerDefaults {
         R.string.task_audio_scan_title
     )
 
+    val AudioClassificationWorkerSpec: WorkerSpec = StringWorkerSpec(
+        TAG_AUDIO_CLASSIFICATION_WORKER,
+        AudioClassificationWorker::class.java.name,
+        "Audio Classification Process"
+    )
+
     fun getWorkerSpec(tags: Set<String>): WorkerSpec? = when {
         AudioScanWorkerSpec.isAnyOf(tags) -> AudioScanWorkerSpec
+        AudioClassificationWorkerSpec.isAnyOf(tags) -> AudioClassificationWorkerSpec
         else -> null
     }
 }
