@@ -22,7 +22,12 @@ package tech.rollw.support.analytics
 class CombinedAnalytics(
     private val analytics: List<Analytics>
 ) : Analytics {
+    constructor(vararg analytics: Analytics) : this(analytics.toList())
+
     override fun logEvent(event: AnalyticsEvent) {
         analytics.forEach { it.logEvent(event) }
     }
+
+    fun findByType(type: Class<out Analytics>): Analytics? =
+        analytics.find { type.isInstance(it) }
 }
