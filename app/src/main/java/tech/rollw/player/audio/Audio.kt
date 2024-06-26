@@ -22,6 +22,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import tech.rollw.player.audio.tag.AudioTag
 import tech.rollw.player.audio.tag.AudioTagField
+import java.io.Serializable
 
 /**
  * @author RollW
@@ -57,7 +58,7 @@ data class Audio(
     @ColumnInfo(name = "size") val size: Long,
     @ColumnInfo(name = "last_modified") val lastModified: Long,
     @ColumnInfo(name = "create_time") val createTime: Long
-) {
+): Serializable {
 
     companion object {
         val EMPTY = Audio(

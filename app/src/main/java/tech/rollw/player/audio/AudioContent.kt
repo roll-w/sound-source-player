@@ -17,6 +17,7 @@
 package tech.rollw.player.audio
 
 import tech.rollw.support.io.ContentPath
+import java.io.Serializable
 
 /**
  * Combine audio and its content path for
@@ -27,14 +28,21 @@ import tech.rollw.support.io.ContentPath
 data class AudioContent(
     val audio: Audio,
     val path: ContentPath
-)
+) : Serializable {
+    companion object {
+        fun Audio.toAudioContent(path: ContentPath) = AudioContent(this, path)
 
-fun Audio.toAudioContent(path: ContentPath) = AudioContent(this, path)
+        fun List<Audio>.toAudioContentList(
+            audioPaths: List<AudioPath>,
+            checkNonNull: Boolean = false
+        ) = map {
+            val audioPath = audioPaths.find { path -> path.id == it.id }
+            if (audioPath == null && checkNonNull) {
+                throw IllegalArgumentException("Audio path cannot found for audio: ${it.id}.")
+            }
+            AudioContent(it, audioPath?.path ?: ContentPath.EMPTY)
+        }
 
-fun List<Audio>.toAudioContentList(audioPaths: List<AudioPath>) = map {
-    val audioPath = audioPaths.find { path -> path.id == it.id }
-    if (audioPath == null) {
-        throw IllegalArgumentException("Audio path cannot found for audio: ${it.id}.")
+        val EMPTY = AudioContent(Audio.EMPTY, ContentPath.EMPTY)
     }
-    AudioContent(it, audioPath.path)
 }
