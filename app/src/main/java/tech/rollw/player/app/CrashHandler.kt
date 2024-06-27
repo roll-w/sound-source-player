@@ -42,6 +42,10 @@ class CrashHandler(
                     "\n=== Stack Trace ===\n",
             e
         )
+
+        if (BuildConfig.DEBUG) {
+            e.printStackTrace()
+        }
     }
 
     private fun collectContextInfo(): ContextInfo {
