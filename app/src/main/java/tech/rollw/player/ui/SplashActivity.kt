@@ -20,31 +20,51 @@ import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
-import android.widget.ImageView
+import androidx.activity.compose.setContent
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.animation.doOnEnd
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import tech.rollw.player.BuildConfig
 import tech.rollw.player.R
 import tech.rollw.player.data.setting.AppSettings
 import tech.rollw.player.data.setting.DebugSettings
 import tech.rollw.player.data.setting.SettingValue
-import tech.rollw.player.databinding.ActivitySplashBinding
 import tech.rollw.player.ui.player.MainActivity
 import tech.rollw.player.ui.player.SetupActivity
+import tech.rollw.player.ui.theme.SoundSourceTheme
 import tech.rollw.support.appcompat.AppActivity
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppActivity() {
-    private lateinit var binding: ActivitySplashBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -63,13 +83,16 @@ class SplashActivity : AppActivity() {
             alphaAnimator.start()
         }
 
-        binding = ActivitySplashBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         setStatusBar(Color.TRANSPARENT, true)
         window.navigationBarColor = Color.TRANSPARENT
 
-        setupView()
-        // overridePendingTransition(R.anim.anim_fade_in, R.anim.anim_fade_out)
+        setContent {
+            SoundSourceTheme {
+                Content(
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
 
         if (isShowSetup()) {
             startActivity(Intent(this, SetupActivity::class.java).apply {
@@ -88,6 +111,7 @@ class SplashActivity : AppActivity() {
                 startActivity(mainActivityIntent, 0)
                 return
             }
+
             else -> startActivity(mainActivityIntent, DURATION)
         }
     }
@@ -122,32 +146,63 @@ class SplashActivity : AppActivity() {
         }
     }
 
+    @Composable
+    private fun Content(
+        modifier: Modifier = Modifier,
+    ) {
+        var size by remember { mutableStateOf(IntSize.Zero) }
 
-    @SuppressLint("SetTextI18n")
-    private fun setupView() {
-        val logo = ResourcesCompat.getDrawable(resources, R.mipmap.ic_logo, null)
-        val currentWidth = window.decorView.width
-        val screenImage = binding.activitySplashScreenImage
-
-        screenImage.apply {
-            visibility = View.VISIBLE
-            alpha = 0f
-            val animator = animate().alpha(1f)
-            animator.duration = 1000L
-            animator.interpolator = AccelerateDecelerateInterpolator()
-
-            adjustViewBounds = true
-            maxWidth = currentWidth / 2
-            setBackgroundColor(Color.TRANSPARENT)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setImageDrawable(logo)
+        val stdWidth by remember {
+            derivedStateOf {
+                size.width.coerceAtMost(size.height)
+            }
         }
 
-        val screenText = binding.activitySplashScreenText
-        screenText.apply {
-            textAlignment = View.TEXT_ALIGNMENT_CENTER
-            typeface = Typeface.DEFAULT
-            text = "${getString(R.string.splash_copyright)} ${BuildConfig.VERSION_NAME}"
+        val alpha by animateFloatAsState(
+            targetValue = 1f,
+            animationSpec = tween(
+                durationMillis = 5000,
+                easing = LinearOutSlowInEasing
+            )
+        )
+
+        ConstraintLayout(
+            modifier = modifier
+                .alpha(alpha)
+                .onGloballyPositioned {
+                    size = it.size
+                },
+        ) {
+            val (contentRef, bottomTextRef) = createRefs()
+            Image(
+                modifier = Modifier
+                    .constrainAs(contentRef) {
+                        linkTo(parent.start, parent.end)
+                        linkTo(parent.top, parent.bottom)
+                    }
+                    .width(with(LocalDensity.current) {
+                        stdWidth.toDp()
+                    })
+                    .height(with(LocalDensity.current) {
+                        stdWidth.toDp()
+                    }),
+                painter = painterResource(id = R.mipmap.ic_logo),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+            )
+
+            Text(
+                text = "${getString(R.string.splash_copyright)} ${BuildConfig.VERSION_NAME}",
+                modifier = Modifier
+                    .constrainAs(bottomTextRef) {
+                        linkTo(parent.start, parent.end)
+                        bottom.linkTo(parent.bottom)
+                    }
+                    .padding(bottom = 26.dp, start = 16.dp, end = 16.dp),
+                style = PlayerTheme.typography.contentNormal.info,
+                color = PlayerTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
         }
     }
 
