@@ -58,6 +58,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":support"))
+
     implementation(libs.bundles.androidx.appcompat)
     implementation(libs.bundles.androidx.core)
 
