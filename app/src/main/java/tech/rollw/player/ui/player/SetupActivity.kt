@@ -40,14 +40,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +62,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -71,24 +76,34 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import tech.rollw.player.R
 import tech.rollw.player.data.setting.AppSettings
 import tech.rollw.player.data.setting.SettingValue
 import tech.rollw.player.data.setting.UserSettings
+import tech.rollw.player.service.scanner.AudioScanWorker
 import tech.rollw.player.ui.ContentTypography
 import tech.rollw.player.ui.PlayerTheme
 import tech.rollw.player.ui.theme.SoundSourceTheme
@@ -145,6 +160,10 @@ class SetupActivity : AppActivity() {
 
     companion object {
         private const val PAGER_COUNT = 5
+
+        private const val SCAN_NONE = 0
+        private const val SCAN_RUNNING = 1
+        private const val SCAN_DONE = 2
 
         const val EXTRA_NAVIGATE_TO_MAIN = "tech.rollw.player.NAVIGATE_TO_MAIN"
     }
@@ -293,8 +312,8 @@ class SetupActivity : AppActivity() {
             onClickContinue = onClickContinueExtend
         ) {
             TitleWithDescription(
-                title = "Profile",
-                description = "",
+                title = stringResource(R.string.setup_profile_title),
+                description = stringResource(R.string.setup_profile_desc),
                 contentTypography = contentTypography
             )
 
@@ -308,6 +327,7 @@ class SetupActivity : AppActivity() {
                             textFieldFocus = it.isFocused
                         },
                     value = input,
+                    singleLine = true,
                     onValueChange = {
                         input = it
                     },
@@ -407,6 +427,35 @@ class SetupActivity : AppActivity() {
             }
         }
 
+        val scanWorkInfo by findScanWorkerInfo().collectAsState(initial = null)
+
+        fun getScanState(): Int {
+            if (scanWorkInfo == null) {
+                return SCAN_NONE
+            }
+            return when (scanWorkInfo?.state) {
+                WorkInfo.State.ENQUEUED,
+                WorkInfo.State.BLOCKED,
+                WorkInfo.State.RUNNING -> {
+                    SCAN_RUNNING
+                }
+
+                WorkInfo.State.SUCCEEDED,
+                WorkInfo.State.FAILED,
+                WorkInfo.State.CANCELLED -> {
+                    SCAN_DONE
+                }
+
+                else -> SCAN_NONE
+            }
+        }
+
+        var scanning by remember { mutableIntStateOf(getScanState()) }
+
+        LaunchedEffect(scanWorkInfo) {
+            scanning = getScanState()
+        }
+
         SetupScreenLayout(
             modifier = modifier,
             onClickPrev = onClickPrev,
@@ -422,6 +471,7 @@ class SetupActivity : AppActivity() {
                 modifier = Modifier.padding(top = 20.dp),
             ) {
                 permissions.forEach {
+                    // TODO: add animation for adding and removing
                     UriPermissionItem(
                         uri = it,
                         modifier = Modifier
@@ -439,41 +489,172 @@ class SetupActivity : AppActivity() {
                     )
                 }
 
-                Column(
+                AddPermissionComponent(
                     modifier = Modifier
-                        .padding(vertical = 10.dp)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(25))
-                ) {
+                        .fillMaxWidth(),
+                    contentTypography = contentTypography,
+                    scanning = scanning,
+                    onClickAdd = {
+                        launcher.launch(null)
+                    },
+                    onClickScan = {
+                        AudioScanWorker.submitWork(this@SetupActivity)
+                    },
+                    onClickScanDone = {
+                        scanning = SCAN_NONE
+                    }
+                )
+            }
+        }
+    }
 
-                    Row(
-                        modifier = Modifier
-                            .clickable {
-                                launcher.launch(null)
-                            }
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+    private fun findScanWorkerInfo(): Flow<WorkInfo?> {
+        return WorkManager.getInstance(this)
+            .getWorkInfosForUniqueWorkFlow(AudioScanWorker.WORKER_SPEC.tag)
+            .distinctUntilChanged()
+            .map { it.firstOrNull() }
+    }
+
+    @Composable
+    private fun AddPermissionComponent(
+        modifier: Modifier = Modifier,
+        scanning: Int = SCAN_NONE,
+        contentTypography: ContentTypography = PlayerTheme.typography.contentNormal,
+        onClickAdd: () -> Unit = {},
+        onClickScan: () -> Unit = {},
+        onClickScanDone: () -> Unit = {}
+    ) {
+        @Composable
+        fun TextIconButton(
+            text: String,
+            modifier: Modifier = Modifier,
+            icon: @Composable () -> Unit = {},
+            onClick: () -> Unit = {}
+        ) {
+            Row(
+                modifier = modifier
+                    .clickable {
+                        onClick()
+                    }
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                icon()
+                Text(
+                    text = text,
+                    style = contentTypography.body,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+
+        Row(
+            modifier = modifier
+                .padding(vertical = 10.dp)
+                .height(IntrinsicSize.Min)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = modifier
+                    .weight(1f)
+                    .wrapContentWidth(Alignment.Start)
+                    .clip(RoundedCornerShape(25))
+            ) {
+                TextIconButton(
+                    text = stringResource(R.string.add),
+                    icon = {
                         Icon(
                             imageVector = Icons.Filled.Add,
-                            contentDescription = "Add",
+                            contentDescription = stringResource(R.string.add),
                             modifier = Modifier
                                 .padding(horizontal = 5.dp),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+                    },
+                    onClick = onClickAdd
+                )
+            }
 
-                        Text(
-                            text = "Add folder",
-                            style = contentTypography.body,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+            VerticalDivider(
+                modifier = Modifier
+                    .height(40.dp)
+                    .padding(horizontal = 10.dp)
+            )
+
+            var contentHeight by remember { mutableIntStateOf(0) }
+
+            AnimatedContent(
+                targetState = scanning,
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentWidth(Alignment.End)
+                    .clip(RoundedCornerShape(25))
+                    .onGloballyPositioned {
+                        contentHeight = it.size.height
+                    }
+            ) {
+                val text = when (it) {
+                    SCAN_NONE -> stringResource(R.string.scan)
+                    SCAN_DONE -> "Done"
+                    else -> ""
+                }
+
+                val icon = when (it) {
+                    SCAN_NONE -> Icons.Filled.Refresh
+                    SCAN_DONE -> Icons.Filled.Check
+                    else -> Icons.Filled.Refresh
+                }
+
+                when (it) {
+                    SCAN_NONE, SCAN_DONE -> {
+                        TextIconButton(
+                            text = text,
+                            icon = {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = stringResource(R.string.scan),
+                                    modifier = Modifier
+                                        .padding(horizontal = 5.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            },
+                            onClick = {
+                                if (it == SCAN_NONE) {
+                                    onClickScan()
+                                } else {
+                                    onClickScanDone()
+                                }
+                            }
                         )
+                    }
+
+                    SCAN_RUNNING -> {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .progressSemantics()
+                                    .size(with(LocalDensity.current) {
+                                        20.sp.toDp()
+                                    }),
+                                color = MaterialTheme.colorScheme.secondary,
+                                trackColor = Color.Transparent,
+                                strokeWidth = 3.dp
+                            )
+                        }
                     }
                 }
             }
-
         }
     }
+
 
     @Composable
     private fun UriPermissionItem(
@@ -580,7 +761,6 @@ class SetupActivity : AppActivity() {
         }
     }
 
-
     @Composable
     private fun TitleWithDescription(
         title: String,
@@ -598,7 +778,7 @@ class SetupActivity : AppActivity() {
         Text(
             text = description,
             modifier = Modifier.padding(top = 20.dp),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Start,
             style = contentTypography.body,
             color = MaterialTheme.colorScheme.secondary
         )
@@ -649,7 +829,9 @@ class SetupActivity : AppActivity() {
             AnimatedContent(
                 targetState = allowed,
                 // TODO: keep the width same as the button
-                modifier = Modifier.defaultMinSize(minWidth = 72.dp)
+                modifier = Modifier
+                    .defaultMinSize(minWidth = 72.dp)
+                    .padding(start = 10.dp)
             ) {
                 when (it) {
                     true -> {
@@ -683,10 +865,12 @@ class SetupActivity : AppActivity() {
         continueLabel: String = stringResource(R.string.scontinue)
     ) {
         Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = modifier.height(IntrinsicSize.Min)
         ) {
             OutlinedButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentWidth(Alignment.Start),
                 onClick = onClickPrev
             ) {
                 Text(
@@ -696,6 +880,9 @@ class SetupActivity : AppActivity() {
             }
 
             FilledTonalButton(
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentWidth(Alignment.End),
                 onClick = onClickContinue
             ) {
                 Text(
