@@ -91,10 +91,10 @@ fun SettingMenuScreen(
 
         preference(
             title = {
-                Text(text = stringResource(R.string.media_store))
+                Text(text = stringResource(R.string.media_library))
             },
             summary = {
-                Text(text = stringResource(R.string.media_store))
+                Text(text = stringResource(R.string.media_library))
             },
             shape = SettingPreferenceDefaults.Shape
         ) {
