@@ -36,7 +36,7 @@ class ManageSpaceActivity : AppActivity() {
 
     private fun buildIntent(): Intent {
         val intent = Intent(this, SettingActivity::class.java).apply {
-            putExtra(SettingActivity.EXTRA_ROUTE, SettingActivity.ROUTE_STORAGE)
+            putExtra(SettingActivity.EXTRA_ROUTE, SettingNavigations.ROUTE_STORAGE)
         }
         return intent
     }
