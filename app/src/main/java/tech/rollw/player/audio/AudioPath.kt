@@ -16,7 +16,11 @@
 
 package tech.rollw.player.audio
 
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import tech.rollw.support.io.ContentPath
 
 /**
@@ -26,7 +30,7 @@ import tech.rollw.support.io.ContentPath
  */
 // We choose split the audio path from the [Audio] class,
 // because there are some files that have multiple paths,
-// but they are still referring to the same file.
+// but they can still referring to the same file.
 // We need to handle this but also don't want the [Audio]
 // to become too complex.
 @Entity(
@@ -43,6 +47,8 @@ data class AudioPath(
 
     /**
      * To identify the audio path.
+     *
+     * Should be unique from different audio files.
      */
     @ColumnInfo(name = "identifier")
     val identifier: String,
