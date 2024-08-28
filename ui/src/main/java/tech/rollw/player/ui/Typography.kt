@@ -19,7 +19,8 @@ package tech.rollw.player.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -124,6 +125,19 @@ data class ContentTypography(
         TypographyTokens.Code -> code
     }
 
+    fun merge(other: ContentTypography): ContentTypography = copy(
+        header = header.merge(other.header),
+        title = title.merge(other.title),
+        subtitle = subtitle.merge(other.subtitle),
+        body = body.merge(other.body),
+        info = info.merge(other.info),
+        tag = tag.merge(other.tag),
+        tip = tip.merge(other.tip),
+        code = code.merge(other.code)
+    )
+
+    operator fun plus(other: ContentTypography): ContentTypography = merge(other)
+
     companion object {
         fun createFromBaselineStyle(
             textStyle: TextStyle, fontUnits: FontUnits,
@@ -142,7 +156,12 @@ data class ContentTypography(
             return ContentTypography(
                 header = textStyle.copy(fontUnit = getOrDefault(mapping, TypographyTokens.Header)),
                 title = textStyle.copy(fontUnit = getOrDefault(mapping, TypographyTokens.Title)),
-                subtitle = textStyle.copy(fontUnit = getOrDefault(mapping, TypographyTokens.Subtitle)),
+                subtitle = textStyle.copy(
+                    fontUnit = getOrDefault(
+                        mapping,
+                        TypographyTokens.Subtitle
+                    )
+                ),
                 body = textStyle.copy(fontUnit = getOrDefault(mapping, TypographyTokens.Body)),
                 info = textStyle.copy(fontUnit = getOrDefault(mapping, TypographyTokens.Info)),
                 tag = textStyle.copy(fontUnit = getOrDefault(mapping, TypographyTokens.Tag)),
@@ -263,19 +282,25 @@ internal object TypographyDefaults {
     )
 }
 
-internal val LocalTypography = staticCompositionLocalOf { Typography() }
+internal val LocalTypography = compositionLocalOf(structuralEqualityPolicy()) {
+    Typography()
+}
 
-val LocalContentTypography = staticCompositionLocalOf {
+val LocalContentTypography = compositionLocalOf(structuralEqualityPolicy()) {
     TypographyDefaults.ContentDefault
 }
 
 @Composable
 fun ProvideContentTypography(
     typography: ContentTypography,
+    override: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val merged = if (override) typography
+    else LocalContentTypography.current + typography
+
     CompositionLocalProvider(
-        LocalContentTypography provides typography,
+        LocalContentTypography provides merged,
         content = content
     )
 }
