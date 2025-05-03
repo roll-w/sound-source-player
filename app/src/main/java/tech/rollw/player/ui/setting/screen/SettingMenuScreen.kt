@@ -82,7 +82,7 @@ fun SettingMenuScreen(
                 Text(text = stringResource(R.string.setting_storage))
             },
             summary = {
-                Text(text = "Provides storage management options.")
+                Text(text = stringResource(R.string.setting_storage_summary))
             },
             shape = SettingPreferenceDefaults.Shape
         ) {
