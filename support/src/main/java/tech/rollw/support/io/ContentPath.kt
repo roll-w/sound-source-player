@@ -43,6 +43,8 @@ data class ContentPath(
 
         fun String.toContentPath(type: PathType) = ContentPath(this, type)
 
+        fun File.toContentPath() = ContentPath(absolutePath, PathType.FILE)
+
         fun Uri.toContentPath() = ContentPath(toString(), PathType.URI)
     }
 }

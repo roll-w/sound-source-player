@@ -16,6 +16,8 @@
 
 package tech.rollw.player.data.setting
 
+import tech.rollw.player.BuildConfig
+
 /**
  * @author RollW
  */
@@ -55,6 +57,11 @@ object AppSettings : SettingSpecs {
         true
     )
 
+    val MediaStoreFolders = SettingSpec(
+        SettingKey("setting:app:media_store_folders", SettingType.STRING_SET),
+        allowAnyValue = true
+    )
+
     val LastPlayedList = SettingSpec(
         SettingKey("setting:app:last_played_list", SettingType.LONG),
         allowAnyValue = true
@@ -88,7 +95,9 @@ object UISettings : SettingSpecs {
 
     val Language = SettingSpec(
         SettingKey("setting:ui:language", SettingType.STRING),
-        0, "system", "en", "zh"
+        0,
+        LocaleKey.System.code, LocaleKey.English.code,
+        LocaleKey.Chinese.code
     )
 
     override val specs: List<SettingSpec<*, *>>
@@ -119,6 +128,11 @@ object UserSettings : SettingSpecs {
 }
 
 object DebugSettings : SettingSpecs {
+    val DebugEnabled = SettingSpec.boolean(
+        "setting:debug:enabled",
+        default = BuildConfig.DEBUG
+    )
+
     val BackgroundImageEnabled = SettingSpec.boolean(
         "setting:debug:background_image_enabled",
         default = true
@@ -126,7 +140,7 @@ object DebugSettings : SettingSpecs {
 
     val BackgroundGradientMask = SettingSpec.boolean(
         "setting:debug:background_gradient_mask",
-        default = false
+        default = true
     )
 
     val BackgroundGradientEnabled = SettingSpec.boolean(
@@ -144,6 +158,7 @@ object DebugSettings : SettingSpecs {
 
     override val specs: List<SettingSpec<*, *>>
         get() = listOf(
+            DebugEnabled,
             BackgroundImageEnabled,
             BackgroundGradientMask,
             BackgroundGradientEnabled,

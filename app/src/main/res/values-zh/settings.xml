@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (C) 2024 RollW
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="setting_storage">存储</string>
+    <string name="setting_storage_summary">提供存储管理选项。</string>
+    <string name="setting_debug">调试</string>
+    <string name="setting_ui">用户界面</string>
+    <string name="setting_ui_summary">提供用户界面定制选项。</string>
+    <string name="setting_media_library_summary">管理媒体库设置。</string>
+    <string name="setting_media_library">媒体库</string>
+    <string name="setting_audio">音频</string>
+    <string name="setting_audio_summary">音频设置。</string>
+    <string name="setting_lyric">歌词</string>
+    <string name="setting_lyric_summary">歌词设置。</string>
+
+    <string name="setting_ui_night_mode_title">夜间模式</string>
+    <string name="setting_ui_night_mode_system">跟随系统</string>
+    <string name="setting_ui_night_mode_light">关闭</string>
+    <string name="setting_ui_night_mode_dark">开启</string>
+
+    <string name="setting_ui_language_title">语言</string>
+
+    <string name="setting_debug_category_debug_summary">
+        调试工具集包含不稳定的功能和内部调试工具，使用它们可能导致应用程序不稳定或数据丢失。
+        我们对任何使用这些工具所造成的后果概不负责。
+    </string>
+    <string name="setting_debug_database_title">重建数据库</string>
+    <string name="setting_debug_database_summary">危险操作：删除并重建数据库。</string>
+
+    <string name="setting_storage_clear_cache_title">清除缓存</string>
+    <string name="setting_storage_clear_cache_summary">清除应用运行期间生成的所有缓存文件。</string>
+    <string name="setting_storage_clear_data_title">清除数据</string>
+    <string name="setting_storage_clear_data_summary">彻底清除所有用户数据，包括设置和数据文件。此项操作不可撤销！</string>
+
+    <string name="setting_category_general_title">常规</string>
+</resources>

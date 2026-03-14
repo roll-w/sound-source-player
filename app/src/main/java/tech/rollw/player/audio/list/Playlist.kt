@@ -16,9 +16,11 @@
 
 package tech.rollw.player.audio.list
 
-import android.content.Context
-import androidx.annotation.LongDef
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import tech.rollw.support.io.ContentPath
 
 /**
@@ -34,6 +36,10 @@ data class Playlist(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     val id: Long?,
+
+    /**
+     * When name is empty, take as invalid or unknown.
+     */
     @ColumnInfo(name = "name")
     val name: String = "",
     @ColumnInfo(name = "type")
@@ -67,31 +73,34 @@ data class Playlist(
             type = PlaylistType.OTHER,
         )
 
-
-        fun ofSystem(
-            @SystemPlaylistType id: Long,
-            context: Context
-        ) = Playlist(
-            id = id,
-            name = getNameOfSystemType(id, context),
+        val All = Playlist(
+            id = -1L,
+            name = "All",
             type = PlaylistType.OTHER,
         )
 
-        const val LIST_SYSTEM_ALL = -1L
-        const val LIST_SYSTEM_RECENT = -2L
+        val LastPlayed = Playlist(
+            id = -2L,
+            name = "LastPlayed",
+            type = PlaylistType.OTHER,
+        )
 
-        private fun getNameOfSystemType(
-            @SystemPlaylistType type: Long,
-            context: Context
-        ) = when (type) {
-            // TODO: get string from resources
-            LIST_SYSTEM_ALL -> "All"
-            LIST_SYSTEM_RECENT -> "Recent"
-            else -> throw IllegalArgumentException("Unknown system playlist type: $type")
-        }
+        val RecentlyAdded = Playlist(
+            id = -3L,
+            name = "RecentlyAdded",
+            type = PlaylistType.OTHER,
+        )
 
+        val MostOftenPlayed = Playlist(
+            id = -4L,
+            name = "MostOftenPlayed",
+            type = PlaylistType.OTHER,
+        )
+
+        val Queue = Playlist(
+            id = -5L,
+            name = "Queue",
+            type = PlaylistType.OTHER,
+        )
     }
-
-    @LongDef(LIST_SYSTEM_ALL, LIST_SYSTEM_RECENT)
-    annotation class SystemPlaylistType
 }

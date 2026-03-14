@@ -18,16 +18,17 @@ package tech.rollw.player.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import tech.rollw.player.ui.PlayerTheme
+import androidx.compose.ui.unit.sp
+import tech.rollw.compose.ui.text.FontUnit.Companion.lineHeight
+import tech.rollw.player.analytics.LocalAnalytics
+import tech.rollw.player.getApplicationService
+import tech.rollw.player.ui.*
+import tech.rollw.player.ui.Typography
+import tech.rollw.support.analytics.Analytics
 
 /**
  * @author RollW
@@ -94,11 +95,21 @@ private val darkScheme = darkColorScheme(
     inversePrimary = inversePrimaryDark,
 )
 
+/**
+ * Used for the container opacity in the player main screen.
+ */
+val LocalContainerOpacity = compositionLocalOf { 1f }
+
+private val contentTypographyDefault = ContentTypography()
+
+private val fontUnitsDefault = FontUnits()
+
 @Composable
 fun SoundSourceTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
+    containerOpacity: Float = 1f,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -110,16 +121,66 @@ fun SoundSourceTheme(
         darkTheme -> darkScheme
         else -> lightScheme
     }
+
+    val animatedColorScheme by animateColorSchemeAsState(
+        targetValue = colorScheme,
+    )
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
         }
     }
 
-    PlayerTheme {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            content = content
-        )
+    val applicationContext = LocalContext.current.applicationContext
+
+    val fontUnitsLarge = fontUnitsDefault.copy(
+        tiny = 12.sp lineHeight 16.sp,
+        small = 14.sp lineHeight 18.sp,
+        normal = 16.sp lineHeight 24.sp,
+        large = 22.sp lineHeight 28.sp,
+        extraLarge = 26.sp lineHeight 34.sp,
+        extremeLarge = 28.sp lineHeight 36.sp,
+        huge = 32.sp lineHeight 38.sp,
+        extraHuge = 36.sp lineHeight 44.sp
+    )
+
+    val fontUnitsMedium = fontUnitsDefault.copy(
+        tiny = 12.sp lineHeight 16.sp,
+        small = 14.sp lineHeight 18.sp,
+        normal = 16.sp lineHeight 24.sp,
+        large = 18.sp lineHeight 28.sp,
+        extraLarge = 20.sp lineHeight 32.sp,
+        extremeLarge = 24.sp lineHeight 36.sp,
+        huge = 28.sp lineHeight 40.sp,
+        extraHuge = 32.sp lineHeight 38.sp
+    )
+
+    val contentTypographyLarge =
+        contentTypographyDefault.applyFontUnit(fontUnitsLarge)
+
+    val contentTypographyMedium =
+        contentTypographyDefault.applyFontUnit(fontUnitsMedium)
+
+    val typography = Typography(
+        contentLarge = contentTypographyLarge,
+        contentMedium = contentTypographyMedium
+    )
+
+    val analytics = applicationContext.getApplicationService<Analytics>()
+
+    CompositionLocalProvider(
+        LocalAnalytics provides analytics,
+        LocalContainerOpacity provides containerOpacity
+    ) {
+        PlayerTheme(
+            typography = typography,
+            colorScheme = animatedColorScheme
+        ) {
+            MaterialTheme(
+                colorScheme = animatedColorScheme,
+                content = content
+            )
+        }
     }
 }

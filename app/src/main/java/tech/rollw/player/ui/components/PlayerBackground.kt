@@ -20,6 +20,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -36,6 +40,7 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
+import tech.rollw.player.ui.tools.rememberPrevious
 
 /**
  * Provide a background for the player.
@@ -109,34 +114,43 @@ fun AsyncImageBackground(
     colorOverlay: Color = Color.Unspecified,
     colorOverlayAlpha: Float = DefaultAlpha,
     content: @Composable () -> Unit
-) = Background(
-    modifier = modifier,
-    content = content,
-    background = {
-        ColorFilterOverlay(
-            color = colorOverlay,
-            alpha = colorOverlayAlpha
-        ) {
-            AsyncImage(
-                model = imageRequest,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-                transform = transform,
-                onState = onState,
-                alignment = alignment,
-                alpha = 1f,
-                colorFilter = colorFilter,
-                filterQuality = filterQuality
-            )
-        }
-
+) {
+    val previousRequest = rememberPrevious(current = imageRequest)
+    var currentState by remember {
+        mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty)
     }
-)
+
+    Background(
+        modifier = modifier,
+        content = content,
+        background = {
+            ColorFilterOverlay(
+                color = colorOverlay,
+                alpha = colorOverlayAlpha
+            ) {
+                AsyncImage(
+                    model = imageRequest,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                    transform = transform,
+                    onState = {
+                        currentState = it
+                        onState?.invoke(it)
+                    },
+                    alignment = alignment,
+                    alpha = 1f,
+                    colorFilter = colorFilter,
+                    filterQuality = filterQuality
+                )
+            }
+        }
+    )
+}
 
 
 @Composable
-fun Background(
+internal fun Background(
     modifier: Modifier = Modifier,
     background: @Composable () -> Unit = {},
     content: @Composable () -> Unit
@@ -171,12 +185,12 @@ fun ColorFilterOverlay(
             painter = ColorPainter(Color.White),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            alpha = alpha,
             colorFilter = ColorFilter.tint(
                 color,
                 blendMode
             ),
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .alpha(alpha)
         )
     }

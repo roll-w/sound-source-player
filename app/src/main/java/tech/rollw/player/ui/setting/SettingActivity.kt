@@ -16,20 +16,45 @@
 
 package tech.rollw.player.ui.setting
 
-import android.graphics.Color
 import android.os.Bundle
-import android.view.View
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.createGraph
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.fragment
-import com.google.android.material.color.DynamicColors
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.google.android.material.elevation.SurfaceColors
+import tech.rollw.compose.ui.text.FontUnit.Companion.lineHeight
+import tech.rollw.compose.ui.text.copy
 import tech.rollw.player.R
-import tech.rollw.player.databinding.ActivitySettingBinding
-import tech.rollw.player.ui.OnCreateViewHost
+import tech.rollw.player.ui.ContentTypography
+import tech.rollw.player.ui.PlayerTheme
+import tech.rollw.player.ui.setting.screen.DebugScreen
+import tech.rollw.player.ui.setting.screen.SettingMenuScreen
+import tech.rollw.player.ui.setting.screen.StorageScreen
+import tech.rollw.player.ui.setting.screen.UIScreen
+import tech.rollw.player.ui.setting.screen.debug.*
+import tech.rollw.player.ui.theme.SoundSourceTheme
 import tech.rollw.support.Switch
 import tech.rollw.support.appcompat.AppActivity
 
@@ -37,58 +62,88 @@ import tech.rollw.support.appcompat.AppActivity
  * @author RollW
  */
 class SettingActivity : AppActivity() {
-    private lateinit var binding: ActivitySettingBinding
     private val settingViewModel by viewModels<SettingViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        DynamicColors.applyToActivityIfAvailable(this)
         setupActivityLauncher()
 
-        binding = ActivitySettingBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        val colorSurface = SurfaceColors.SURFACE_0.getColor(this)
+        val lightBar = Switch.of(!isNightMode())
+        setStatusBar(colorBackground = 0, lightBar = lightBar)
+        setNavigationBar(colorBackground = colorSurface, lightBar = lightBar)
 
-        val navController = supportFragmentManager.findFragmentById(
-            R.id.fragment_container
-        )?.findNavController() ?: throw IllegalStateException("No NavHostFragment found")
-        setupNavGraph(navController)
-        setupAppBarLayout(navController)
+        setContent {
+            val navController = rememberNavController()
 
-        setStatusBar(
-            colorBackground = Color.TRANSPARENT,
-            lightStatusBar = Switch.ON
-        )
+            LaunchedEffect(Unit) {
+                navigateIfExtras(navController)
+            }
 
-        binding.toolBar.apply {
-            setOnMenuItemClickListener {
-                when (it.itemId) {
-                    R.id.menu_close -> {
-                        finish()
-                        true
+            SoundSourceTheme {
+                val rawContentTypography = PlayerTheme.typography.contentMedium
+                val preferenceContentTypography = PlayerTheme.typography.contentNormal.copy(
+                    title = rawContentTypography.title.copy(
+                        fontWeight = FontWeight.Normal,
+                        fontUnit = 24.sp lineHeight 34.sp
+                    ),
+                    subtitle = rawContentTypography.subtitle.copy(
+                        fontWeight = FontWeight.Normal,
+                        fontUnit = 18.sp lineHeight 28.sp
+                    ),
+                    body = rawContentTypography.body.copy(
+                        fontWeight = FontWeight.Normal,
+                        fontUnit = 14.sp lineHeight 20.sp
+                    )
+                )
+
+                val title by settingViewModel.title.collectAsState("")
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        TopAppBar(
+                            title = {
+                                AnimatedContent(
+                                    targetState = title,
+                                    transitionSpec = {
+                                        fadeIn().togetherWith(fadeOut())
+                                    }
+                                ) {
+                                    Text(text = it)
+                                }
+                            },
+                            navigationIcon = {
+                                IconButton(onClick = {
+                                    onBackPressedDispatcher.onBackPressed()
+                                }) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_arrow_back_24),
+                                        contentDescription = stringResource(R.string.back)
+                                    )
+                                }
+                            },
+                            actions = {
+                                IconButton(onClick = {
+                                    finish()
+                                }) {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_close_24),
+                                        contentDescription = stringResource(R.string.close)
+                                    )
+                                }
+                            }
+                        )
                     }
-
-                    else -> false
+                ) {
+                    SettingNavHost(
+                        navController = navController,
+                        paddingValues = it,
+                        contentTypography = preferenceContentTypography
+                    )
                 }
             }
-            setNavigationOnClickListener {
-                val status = navController.popBackStack()
-                if (!status) {
-                    finish()
-                }
-                // onBackPressedDispatcher.onBackPressed()
-            }
         }
-
-        settingViewModel.title.value = getString(R.string.setting)
-        settingViewModel.title.observe(this) {
-            if (it == null) {
-                binding.toolBar.title = getString(R.string.setting)
-                return@observe
-            }
-            binding.toolBar.title = it
-        }
-
-        navigateIfExtras(navController)
     }
 
     private fun navigateIfExtras(navController: NavController) {
@@ -104,51 +159,115 @@ class SettingActivity : AppActivity() {
         registerActivityLauncher(ActivityResultContracts.OpenDocument())
     }
 
-    private fun setupNavGraph(navController: NavController) {
-        navController.graph = navController.createGraph(
-            startDestination = ROUTE_MENU
+    @Composable
+    private fun SettingNavHost(
+        modifier: Modifier = Modifier,
+        navController: NavHostController = rememberNavController(),
+        paddingValues: PaddingValues = PaddingValues(0.dp),
+        contentTypography: ContentTypography = PlayerTheme.typography.contentNormal
+    ) = NavHost(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        navController = navController,
+        startDestination = SettingNavigations.ROUTE_MENU,
+        enterTransition = {
+            fadeIn() + slideInHorizontally { it }
+        },
+        exitTransition = {
+            fadeOut() + slideOutHorizontally { -it }
+        },
+        popEnterTransition = {
+            fadeIn() + slideInHorizontally { -it }
+        },
+        popExitTransition = {
+            fadeOut() + slideOutHorizontally { it }
+        }
+    ) {
+        val screenModifier = Modifier.fillMaxSize()
+        composable(route = SettingNavigations.ROUTE_MENU) {
+            settingViewModel.setTitle(stringResource(id = R.string.setting))
+            SettingMenuScreen(
+                navController = navController,
+                modifier = screenModifier,
+                contentTypography = contentTypography
+            )
+        }
+        composable(route = SettingNavigations.ROUTE_UI) {
+            settingViewModel.setTitle(stringResource(id = R.string.setting_ui))
+            UIScreen(
+                navController = navController,
+                modifier = screenModifier,
+                contentTypography = contentTypography
+            )
+        }
+        composable(route = SettingNavigations.ROUTE_DEBUG) {
+            settingViewModel.setTitle(stringResource(id = R.string.setting_debug))
+            DebugScreen(
+                navController = navController,
+                modifier = screenModifier,
+                contentTypography = contentTypography
+            )
+        }
+
+        composable(route = SettingNavigations.ROUTE_STORAGE) {
+            settingViewModel.setTitle(stringResource(id = R.string.setting_storage))
+            StorageScreen(
+                navController = navController,
+                modifier = screenModifier,
+                contentTypography = contentTypography
+            )
+        }
+
+        composable(route = SettingNavigations.ROUTE_AUDIO_DEVICES) {
+            settingViewModel.setTitle("Audio Devices")
+            AudioDevicesScreen(
+                modifier = screenModifier,
+                contentTypography = PlayerTheme.typography.contentNormal
+            )
+        }
+
+        composable(route = SettingNavigations.ROUTE_ANALYTICS_EVENTS) {
+            settingViewModel.setTitle("Analytics Events")
+            AnalyticsScreen(
+                modifier = screenModifier,
+                contentTypography = PlayerTheme.typography.contentNormal
+            )
+        }
+
+        composable(route = SettingNavigations.ROUTE_THEME_VIEWER) {
+            settingViewModel.setTitle("Theme Viewer")
+            ThemeViewerScreen(
+                modifier = screenModifier,
+                contentTypography = PlayerTheme.typography.contentNormal
+            )
+        }
+
+        composable(route = SettingNavigations.ROUTE_BACKGROUND_TASKS) {
+            settingViewModel.setTitle("Background Tasks")
+            BackgroundTasksScreen(
+                modifier = screenModifier,
+                contentTypography = PlayerTheme.typography.contentNormal
+            )
+        }
+
+        composable(
+            route = SettingNavigations.ROUTE_INTERNAL_FILE_EXPLORER,
+            arguments = listOf(
+                navArgument(InternalFileExplorerScreen.EXTRA_PATH) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
         ) {
-            fragment<SettingMenuFragment>(route = ROUTE_MENU) {
-                label = "Menu"
-            }
-            fragment<DebugFragment>(route = ROUTE_DEBUG) {
-                label = "Debug"
-            }
-            fragment<StorageFragment>(route = ROUTE_STORAGE) {
-                label = "Storage"
-            }
-        }
-    }
-
-
-    private val fragmentCreateViewListener = object : OnCreateViewHost.OnCreateViewListener {
-        override fun onCreateView(view: View, host: OnCreateViewHost) {
-            if (host !is BasePreferenceFragment) {
-                return
-            }
-            binding.appBarLayout.setLiftOnScrollTargetView(host.listView)
-        }
-    }
-
-    private fun setupAppBarLayout(navController: NavController) {
-        binding.appBarLayout.setLiftable(true)
-        val navHostFragment = binding.fragmentContainer
-            .getFragment<NavHostFragment>()
-
-        navHostFragment.childFragmentManager.addFragmentOnAttachListener { _, fragment ->
-            if (fragment !is OnCreateViewHost) {
-                return@addFragmentOnAttachListener
-            }
-            fragment.addOnCreateViewListener(fragmentCreateViewListener)
-        }
-
-        navController.addOnDestinationChangedListener { _, _, _ ->
-            val fragments = navHostFragment.childFragmentManager.fragments
-            if (fragments.isEmpty()) {
-                return@addOnDestinationChangedListener
-            }
-            val fragment = fragments[0] as BasePreferenceFragment
-            fragment.addOnCreateViewListener(fragmentCreateViewListener)
+            settingViewModel.setTitle("Internal File Explorer")
+            val path = it.arguments?.getString(InternalFileExplorerScreen.EXTRA_PATH)
+            InternalFileExplorerScreen(
+                modifier = screenModifier,
+                path = path,
+                navController = navController,
+                contentTypography = PlayerTheme.typography.contentNormal
+            )
         }
     }
 
@@ -158,10 +277,7 @@ class SettingActivity : AppActivity() {
         /**
          * Indicate the route to show.
          */
-        const val EXTRA_ROUTE = "route"
-
-        const val ROUTE_MENU = "menu"
-        const val ROUTE_DEBUG = "debug"
-        const val ROUTE_STORAGE = "storage"
+        const val EXTRA_ROUTE = "SettingActivity.route"
+        const val EXTRA_SETTING_KEY = "SettingActivity.setting_key"
     }
 }

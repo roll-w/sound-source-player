@@ -17,17 +17,11 @@
 package tech.rollw.player.ui
 
 import android.content.Context
-import androidx.fragment.app.Fragment
 import tech.rollw.player.getApplicationService
 
 /**
  * @author RollW
  */
-
-inline fun <reified T : Any> Fragment.applicationService(): Lazy<T> = lazy {
-    requireContext().getApplicationService(T::class.java)
-}
-
 inline fun <reified T : Any> Context.applicationService(): Lazy<T> = lazy {
     getApplicationService(T::class.java)
 }

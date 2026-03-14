@@ -48,7 +48,11 @@ class LocalImageLoader(
     }
 
     private fun loadInternal(contentPath: ContentPath): ByteArray? {
-        val suffix = contentPath.getSuffix()
+        if (contentPath.path.isEmpty()) {
+            return null
+        }
+
+        val suffix = contentPath.extension
         val audioFormatType = AudioFormatType.fromExtensionOrNull(suffix)
         if (audioFormatType != null) {
             return ifAudioFile(contentPath, audioFormatType)
@@ -68,7 +72,7 @@ class LocalImageLoader(
             audioFormatType = audioFormatType,
             readonly = true
         )
-        return tag.getArtwork()
+        return tag.getArtwork()?.data
     }
 
     private fun ifImageFile(contentPath: ContentPath): ByteArray? {

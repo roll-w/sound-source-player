@@ -37,6 +37,7 @@ import tech.rollw.player.ui.ContentTypography
 import tech.rollw.player.ui.PlayerTheme
 import tech.rollw.player.ui.player.SetupActivity
 import tech.rollw.player.ui.setting.SettingNavigations
+import tech.rollw.player.ui.setting.SettingPreferenceDefaults
 import tech.rollw.player.ui.setting.preferences.PreferenceScreen
 import tech.rollw.player.ui.setting.preferences.preference
 import tech.rollw.player.ui.setting.preferences.preferenceCategory
@@ -70,7 +71,7 @@ fun SettingMenuScreen(
                 Text(text = stringResource(R.string.setting_ui))
             },
             summary = {
-                Text(text = "Provides UI customization options.")
+                Text(text = stringResource(R.string.setting_ui_summary))
             },
             shape = SettingPreferenceDefaults.Shape
         ) {
@@ -91,10 +92,10 @@ fun SettingMenuScreen(
 
         preference(
             title = {
-                Text(text = stringResource(R.string.media_library))
+                Text(text = stringResource(R.string.setting_media_library))
             },
             summary = {
-                Text(text = stringResource(R.string.media_library))
+                Text(text = stringResource(R.string.setting_media_library_summary))
             },
             shape = SettingPreferenceDefaults.Shape
         ) {
@@ -119,7 +120,7 @@ fun SettingMenuScreen(
                     Text(text = stringResource(R.string.setting_debug))
                 },
                 summary = {
-                    Text(text = "Debug")
+                    Text(text = stringResource(R.string.setting_debug_summary))
                 },
                 shape = SettingPreferenceDefaults.Shape
             ) {

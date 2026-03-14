@@ -26,15 +26,32 @@ import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
+import tech.rollw.player.app.CrashHandler
 import tech.rollw.player.audio.player.AudioPlaylistProvider
 import tech.rollw.player.audio.player.DefaultAudioPlaylistProvider
+import tech.rollw.player.data.database.repository.AudioPathRepository
+import tech.rollw.player.data.database.repository.AudioRepository
+import tech.rollw.player.data.database.repository.PlaylistItemRepository
+import tech.rollw.player.data.database.repository.PlaylistRepository
+import tech.rollw.player.data.setting.SettingApplyProvider
+import tech.rollw.player.data.setting.SettingApplyProviderDelegate
+import tech.rollw.player.data.setting.SettingApplyProviderRegistry
+import tech.rollw.player.data.setting.SettingKey
+import tech.rollw.player.data.setting.preferenceDataStore
+import tech.rollw.player.data.storage.BlurredImageFetcher
 import tech.rollw.player.data.storage.CommonResources
 import tech.rollw.player.data.storage.ContentPathImageFetcher
 import tech.rollw.player.data.storage.LocalImageLoader
+import tech.rollw.player.service.PlaylistInitializer
+import tech.rollw.player.ui.setting.provider.UISettingApplyProvider
 import tech.rollw.player.util.FileLogger
 import tech.rollw.player.util.Logger
+import tech.rollw.player.util.SettingInitializer
 import tech.rollw.player.util.today
-import tech.rollw.support.io.ContentPath
+import tech.rollw.support.analytics.Analytics
+import tech.rollw.support.analytics.AndroidLogAnalytics
+import tech.rollw.support.analytics.CombinedAnalytics
+import tech.rollw.support.analytics.InMemoryAnalytics
 import java.io.File
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
@@ -45,23 +62,57 @@ import java.util.concurrent.TimeUnit
  * @author RollW
  */
 class PlayerApplication : Application(),
-    ImageLoaderFactory {
+    ImageLoaderFactory,
+    SettingApplyProviderRegistry {
+
+    init {
+        APPLICATION = this
+    }
 
     private val serviceConfigs: MutableMap<Class<*>, () -> Any?> =
         hashMapOf<Class<*>, () -> Any?>().apply {
             put(AudioPlaylistProvider::class.java) { DefaultAudioPlaylistProvider() }
             put(LocalImageLoader::class.java) { LocalImageLoader(this@PlayerApplication) }
             put(CommonResources::class.java) { CommonResources(this@PlayerApplication) }
+            put(Analytics::class.java) {
+                CombinedAnalytics(AndroidLogAnalytics, InMemoryAnalytics())
+            }
+            put(Logger::class.java) { logger }
+            put(AudioRepository::class.java) { AudioRepository(this@PlayerApplication) }
+            put(AudioPathRepository::class.java) { AudioPathRepository(this@PlayerApplication) }
+            put(PlaylistRepository::class.java) { PlaylistRepository(this@PlayerApplication) }
+            put(PlaylistItemRepository::class.java) { PlaylistItemRepository(this@PlayerApplication) }
         }
+
+    private val settingProviderDelegate by lazy {
+        SettingApplyProviderDelegate(this)
+    }
 
     override fun onCreate() {
         initServices()
         super.onCreate()
+
+        initSettings()
     }
 
     private fun initServices() {
         CrashHandler.install(this, logger)
     }
+
+    private fun initSettings() {
+        getSettingInitializer().applyDefaults(this)
+        settingProviderDelegate.init(dataStore = preferenceDataStore)
+        settingProviderDelegate.register(UISettingApplyProvider)
+    }
+
+    private fun getSettingInitializer() =
+        SettingInitializer(
+            this.preferenceDataStore,
+            listOf(
+                UISettingApplyProvider,
+                PlaylistInitializer
+            )
+        )
 
     private val services: MutableMap<Class<*>, Any> = hashMapOf()
 
@@ -85,7 +136,7 @@ class PlayerApplication : Application(),
     }
 
     private fun getLogFile(): File {
-        val dir = getExternalFilesDir("logs") ?: File(filesDir, "logs")
+        val dir = File(filesDir.parentFile, "logs")
         if (!dir.exists()) {
             dir.mkdirs()
         }
@@ -94,6 +145,7 @@ class PlayerApplication : Application(),
     }
 
     private val logger: Logger by lazy {
+        // TODO: check date
         FileLogger(getLogFile())
     }
 
@@ -135,6 +187,8 @@ class PlayerApplication : Application(),
         private const val KEEP_ALIVE_TIME = 1
         private val KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS
 
+        lateinit var APPLICATION: PlayerApplication
+            private set
     }
 
     override fun newImageLoader(): ImageLoader {
@@ -151,16 +205,22 @@ class PlayerApplication : Application(),
                     .maxSizePercent(0.5)
                     .build()
             )
-            .placeholder(R.mipmap.ic_logo)
-            .error(R.mipmap.ic_logo)
-            .fallback(R.mipmap.ic_logo)
             .components {
-                add(ContentPathImageFetcher.Factory(), ContentPath::class.java)
+                add(ContentPathImageFetcher.Factory())
+                add(BlurredImageFetcher.Factory())
             }
             .crossfade(true)
             .build()
     }
 
+    override fun register(provider: SettingApplyProvider) =
+        settingProviderDelegate.register(provider)
+
+    override fun unregister(provider: SettingApplyProvider) =
+        settingProviderDelegate.unregister(provider)
+
+    override fun getProviders(settingKey: SettingKey<*, *>): List<SettingApplyProvider> =
+        settingProviderDelegate.getProviders(settingKey)
 }
 
 private val Context.application: PlayerApplication
@@ -168,6 +228,10 @@ private val Context.application: PlayerApplication
 
 fun <T : Any> Context.getApplicationService(clazz: Class<T>, service: () -> T? = { null }): T =
     application.getService(clazz, service)
+
+inline fun <reified T : Any> Context.getApplicationService(): T =
+    getApplicationService(T::class.java)
+
 
 fun Context.destroyApplicationService(clazz: Class<*>) {
     application.destroyService(clazz)

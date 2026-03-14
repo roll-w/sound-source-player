@@ -37,7 +37,7 @@ data class ByteArrayArtwork(
         if (format != other.format) return false
         if (data != null) {
             if (other.data == null) return false
-            if (!data.contentEquals(other.data)) return false
+            if (data.size != other.data.size) return false
         } else if (other.data != null) return false
         if (width != other.width) return false
         if (height != other.height) return false

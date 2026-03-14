@@ -16,7 +16,7 @@
 
 package tech.rollw.player.ui.player.model
 
-import tech.rollw.player.ui.player.AudioListParam
+import tech.rollw.player.ui.player.AudioListType
 import java.io.Serializable
 
 /**
@@ -26,5 +26,5 @@ data class MediaStoreModel(
     val name: String,
     val icon: Int,
     val identifier: Int,
-    val list: AudioListParam,
+    val list: AudioListType,
 ) : Serializable

@@ -29,6 +29,7 @@ object SettingNavigations {
     const val ROUTE_DEBUG: Route = "debug"
     const val ROUTE_STORAGE: Route = "storage"
 
+    const val ROUTE_ANALYTICS_EVENTS: Route = "debug/analytics_events"
     const val ROUTE_AUDIO_DEVICES: Route = "debug/audio_devices"
     const val ROUTE_BACKGROUND_TASKS: Route = "debug/background_tasks"
     const val ROUTE_THEME_VIEWER: Route = "debug/theme_viewer"

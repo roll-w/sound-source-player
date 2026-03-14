@@ -30,6 +30,8 @@ data class SourcedData<T>(
     val source: String? = null
 ) {
     fun withSource(source: String?): SourcedData<T> = copy(source = source)
-}
 
-fun <T> T.sourced(source: String? = null): SourcedData<T> = SourcedData(this, source)
+    companion object {
+        fun <T> T.sourced(source: String? = null): SourcedData<T> = SourcedData(this, source)
+    }
+}

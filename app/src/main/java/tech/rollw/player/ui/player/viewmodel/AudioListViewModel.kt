@@ -75,14 +75,14 @@ class AudioListViewModel(
     ): SharedFlow<List<AudioContent>> =
         audioContents.map {
             it.sortBy(audioOrder, reverse)
-        }.shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+        }.shareIn(viewModelScope, SharingStarted.Lazily, replay = 1)
 
     fun getAudioPath(audio: Audio): Flow<List<AudioPath>> =
         audio.id?.let {
             audioPathRepository.getByAudioIdFlow(it)
         } ?: throw IllegalArgumentException("Audio id is null.")
 
-    val playlists: Flow<List<Playlist>> = playlistRepository.getFlow()
+    private val playlists: Flow<List<Playlist>> = playlistRepository.getFlow()
         .distinctUntilChanged()
 
     fun getPlaylists(type: PlaylistType): Flow<List<Playlist>> =
@@ -93,6 +93,21 @@ class AudioListViewModel(
         if (playlist.id == null) emptyFlow()
         else playlistItemRepository.getByPlaylistFlow(playlist.id)
             .distinctUntilChanged()
+
+    fun getPlaylistItems(audioId: Long): Flow<List<PlaylistItem>> =
+        playlistItemRepository.getByAudioFlow(audioId)
+            .distinctUntilChanged()
+
+    fun getPlaylistsByAudio(audioId: Long): Flow<List<Playlist>> =
+        playlistItemRepository.getByAudioFlow(audioId)
+            .distinctUntilChanged()
+            .map { playlistItems ->
+                val ids = playlistItems.map { it.playlistId }
+                playlists.map { playlists ->
+                    playlists.filter { it.id in ids }
+                }.last()
+            }
+
 
     fun getPlaylistItems(playlist: Playlist): Flow<List<AudioContent>> =
         if (playlist.id == null) emptyFlow()

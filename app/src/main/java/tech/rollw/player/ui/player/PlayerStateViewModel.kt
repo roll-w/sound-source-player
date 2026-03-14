@@ -59,7 +59,7 @@ class PlayerStateViewModel : ViewModel(), PlaylistViewModel, PlayerViewModel {
 
     override fun setIndex(index: Int, source: String?) {
         viewModelScope.launch {
-            _index.value = SourcedData(index, source)
+            _index.emit(SourcedData(index, source))
         }
     }
 
@@ -72,7 +72,7 @@ class PlayerStateViewModel : ViewModel(), PlaylistViewModel, PlayerViewModel {
         viewModelScope.launch {
             _playlistInfo.value = playlistInfo
             _playlist.value = audioContents
-            _index.value = SourcedData(index, source)
+            _index.emit(SourcedData(index, source))
         }
     }
 

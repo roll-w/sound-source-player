@@ -55,4 +55,10 @@ interface PlaylistItemDao : AutoPrimaryKeyDao<PlaylistItem> {
 
     @Query("SELECT * FROM playlist_item WHERE playlist_id = :playlistId AND audio_id = :audioId")
     fun getByPlaylistAndAudio(playlistId: Long, audioId: Long): PlaylistItem?
+
+    @Query("SELECT * FROM playlist_item WHERE audio_id = :audioId")
+    fun getByAudio(audioId: Long): List<PlaylistItem>
+
+    @Query("SELECT * FROM playlist_item WHERE audio_id = :audioId")
+    fun getByAudioFlow(audioId: Long): Flow<List<PlaylistItem>>
 }

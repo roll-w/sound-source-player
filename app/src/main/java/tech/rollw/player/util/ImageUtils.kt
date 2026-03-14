@@ -42,7 +42,7 @@ object ImageUtils {
         bitmap: Bitmap, radius: Int = 25,
         copy: Boolean = true
     ): Bitmap {
-        if (radius < 0 || radius > 100) {
+        if (radius !in 0..100) {
             throw IllegalArgumentException("Radius must be in range [0, 100].")
         }
         if (radius == 0) {
@@ -51,7 +51,7 @@ object ImageUtils {
 
         val copied = if (copy) {
             val cBitmap = bitmap.copy(
-                bitmap.config,
+                bitmap.config!!,
                 true
             )
             if (cBitmap == null) {

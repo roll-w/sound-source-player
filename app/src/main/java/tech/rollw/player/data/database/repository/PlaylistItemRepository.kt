@@ -42,4 +42,10 @@ class PlaylistItemRepository(
         }
         return (dao as PlaylistItemDao).getByPlaylistFlow(playlistId)
     }
+
+    fun getByAudio(audioId: Long): List<PlaylistItem> =
+        (dao as PlaylistItemDao).getByAudio(audioId)
+
+    fun getByAudioFlow(audioId: Long): Flow<List<PlaylistItem>> =
+        (dao as PlaylistItemDao).getByAudioFlow(audioId)
 }

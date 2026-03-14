@@ -19,7 +19,7 @@ package tech.rollw.player.ui.player.screen
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
@@ -29,27 +29,27 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.SliderDefaults.colors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import tech.rollw.player.R
 import tech.rollw.player.audio.AudioContent
 import tech.rollw.player.audio.player.AudioPlaylistProvider
 import tech.rollw.player.ui.components.RoundedRow
 import tech.rollw.player.ui.player.PlayerStateViewModel
+import tech.rollw.player.ui.player.viewmodel.PlayerViewModel
+import tech.rollw.player.ui.tools.ImageRequestUtils.imageRequestBuilder
 import tech.rollw.support.SourcedData
 
 /**
@@ -70,46 +70,96 @@ private object NowPlayingBarScreenDefaults {
     val ImageCornerPercent = 25
     val TitleTextSize = 14.sp
     val SubtitleTextSize = TitleTextSize
-    val Padding = 10.dp
+    val AudioContentPaddingX = 10.dp
+    val AudioContentPaddingY = 5.dp
 
-    // TODO: theme colors
+    val PlayPauseIconSize = 30.dp
+    val SeekbarHeight = 4.dp
+    val SeekbarPadding = 2.dp
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingBarScreen(
     playerStateViewModel: PlayerStateViewModel = viewModel(LocalContext.current as ComponentActivity),
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
-    onClickPlayPause: () -> Unit = {},
-    onSwitch: (Int) -> Unit = {},
+    onClick: (AudioContent) -> Unit = {},
+    onLongClick: (AudioContent) -> Unit = {},
+    onClickPlayPause: (AudioContent) -> Unit = {},
+    onSwitch: (Int, extras: Bundle?) -> Unit = { _, _ -> },
     onSeek: (Long) -> Unit = {}
 ) {
     val playlist by playerStateViewModel.playlist
         .collectAsState(emptyList())
     val position by playerStateViewModel.index
         .collectAsState(SourcedData(0))
+    val currentPosition by playerStateViewModel.audioPosition
+        .collectAsState(PlayerViewModel.INVALID_POSITION)
 
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (playlist.isEmpty()) {
+            EmptyView(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            )
+            return
+        }
+        val playing by playerStateViewModel.playing
+            .collectAsState(false)
+        val audioContent = playlist[position.data]
+
+        Seekbar(
+            duration = audioContent.audio.duration,
+            currentPosition = currentPosition,
+            onSeek = onSeek,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = NowPlayingBarScreenDefaults.SeekbarPadding)
+        )
+
+        PlayerBarPager(
+            playlist = playlist,
+            index = position,
+            playing = playing,
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onClickPlayPause = onClickPlayPause,
+            onSwitch = onSwitch
+        )
+    }
+}
+
+@Composable
+private fun PlayerBarPager(
+    playlist: List<AudioContent>,
+    index: SourcedData<Int>,
+    playing: Boolean,
+    onClick: (AudioContent) -> Unit,
+    onLongClick: (AudioContent) -> Unit,
+    onClickPlayPause: (AudioContent) -> Unit,
+    onSwitch: (Int, extras: Bundle?) -> Unit = { _, _ -> }
+) {
     val pagerState = rememberPagerState(pageCount = {
         if (playlist.isEmpty()) {
             1
         } else playlist.size
-    }, initialPage = position.data)
+    }, initialPage = index.data)
 
     val isDragged by pagerState.interactionSource.collectIsDraggedAsState()
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect {
-            if (it == position.data) {
+        snapshotFlow { pagerState.settledPage }.collect {
+            if (it == index.data) {
                 return@collect
             }
-            onSwitch(it)
+            onSwitch(it, NowPlayingBarScreen.SOURCE_BUNDLE)
         }
     }
 
-    LaunchedEffect(playerStateViewModel.index) {
-        snapshotFlow { position }
+    LaunchedEffect(index) {
+        snapshotFlow { index }
             .collect {
                 if (it.source == NowPlayingBarScreen.TAG || isDragged) {
                     return@collect
@@ -122,20 +172,16 @@ fun NowPlayingBarScreen(
 
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        beyondViewportPageCount = 1,
     ) { page ->
         if (playlist.isEmpty()) {
-            EmptyView()
             return@HorizontalPager
         }
-        val playing by playerStateViewModel.playing
-            .collectAsState(false)
-
-        val audioContent = playlist[page]
-
+        val pageContent = playlist[page]
         RoundedRow {
             AudioContentView(
-                audioContent = audioContent,
+                audioContent = pageContent,
                 playing = playing,
                 onClickPlayPause = onClickPlayPause,
                 onClick = onClick,
@@ -143,31 +189,18 @@ fun NowPlayingBarScreen(
             )
         }
     }
-    val currentPosition by playerStateViewModel.audioPosition
-        .collectAsState(0L)
-
-    if (playlist.isNotEmpty()) {
-        val audioContent = playlist[position.data]
-        PlayerSeekbar(
-            duration = audioContent.audio.duration,
-            currentPosition = currentPosition,
-            onSeek = onSeek,
-            modifier = Modifier
-                .padding(
-                    bottom = 10.dp,
-                    start = 10.dp, end = 10.dp
-                )
-        )
-    }
 }
 
 @Composable
-private fun PlayerSeekbar(
+private fun Seekbar(
     duration: Long,
     currentPosition: Long,
     modifier: Modifier = Modifier,
     onSeek: (Long) -> Unit = {}
 ) {
+    if (currentPosition == PlayerViewModel.INVALID_POSITION) {
+        return
+    }
     val progress = currentPosition.toFloat()
 
     var inputValue by remember {
@@ -179,8 +212,8 @@ private fun PlayerSeekbar(
     val isInteracting = isPressed || isDragged
 
     @SuppressLint("UnrememberedMutableState")
-    // remember the sliderValue will cause a bug that cannot
-    // update the sliderValue
+    // TODO: remember derivedStateOf sliderValue will cause a bug that cannot
+    //  update the sliderValue
     val sliderValue by derivedStateOf {
         if (isInteracting) {
             inputValue
@@ -194,24 +227,28 @@ private fun PlayerSeekbar(
         onValueChange = {
             inputValue = it
         },
-        onValueChangeFinished = {
+        onValueChangeFinished = finish@{
+            if (inputValue < 0) {
+                return@finish
+            }
             onSeek(inputValue.toLong())
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(8.dp)
-            .clip(
-                RoundedCornerShape(25)
-            ),
+            .height(NowPlayingBarScreenDefaults.SeekbarHeight),
         interactionSource = interactionSource,
         valueRange = 0F..duration.toFloat(),
         thumb = {
-            val thumbInteractionSource = remember { MutableInteractionSource() }
-
-            SliderDefaults.Thumb(
-                interactionSource = thumbInteractionSource,
-                thumbSize = DpSize.Zero,
-                colors = colors()
+        },
+        track = {
+            SliderDefaults.Track(
+                it,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(NowPlayingBarScreenDefaults.SeekbarHeight),
+                thumbTrackGapSize = 0.dp,
+                trackInsideCornerSize = 0.dp,
+                drawStopIndicator = {}
             )
         }
     )
@@ -226,24 +263,27 @@ private fun PlayerSeekbar(
 private fun AudioContentView(
     audioContent: AudioContent,
     playing: Boolean = false,
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
-    onClickPlayPause: () -> Unit = {}
+    onClick: (AudioContent) -> Unit = {},
+    onLongClick: (AudioContent) -> Unit = {},
+    onClickPlayPause: (AudioContent) -> Unit = {}
 ) {
     val context = LocalContext.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
+                onClick = { onClick(audioContent) },
+                onLongClick = { onLongClick(audioContent) }
             )
-            .padding(NowPlayingBarScreenDefaults.Padding)
+            .padding(
+                vertical = NowPlayingBarScreenDefaults.AudioContentPaddingY,
+                horizontal = NowPlayingBarScreenDefaults.AudioContentPaddingX
+            )
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(audioContent.path)
-                .memoryCacheKey("${audioContent.audio.id}")
+            model = audioContent
+                .imageRequestBuilder(context)
                 .build(),
             contentDescription = null,
             modifier = Modifier
@@ -255,7 +295,8 @@ private fun AudioContentView(
                 )
         )
         Column(
-            modifier = Modifier.padding(start = 10.dp)
+            modifier = Modifier
+                .padding(start = 10.dp)
                 .weight(1F),
             verticalArrangement = Arrangement.Center
         ) {
@@ -275,13 +316,15 @@ private fun AudioContentView(
         }
         IconButton(
             onClick = {
-                onClickPlayPause()
+                onClickPlayPause(audioContent)
             },
             modifier = Modifier.padding(10.dp),
         ) {
             PlayPauseIcon(
                 playState = playing,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(
+                    NowPlayingBarScreenDefaults.PlayPauseIconSize
+                )
             )
         }
     }
@@ -295,30 +338,37 @@ private fun PlayPauseIcon(
     playState: Boolean,
     modifier: Modifier = Modifier
 ) {
-    if (playState) {
-        Icon(
-            imageVector = ImageVector.vectorResource(
-                id = R.drawable.ic_baseline_pause_24
-            ),
-            contentDescription = "Play/Pause",
-            modifier = modifier
-        )
-    } else {
-        Icon(
-            imageVector = ImageVector.vectorResource(
-                id = R.drawable.ic_baseline_play_arrow_24
-            ),
-            contentDescription = "Play/Pause",
-            modifier = modifier
-        )
+    AnimatedContent(playState) {
+        when (it) {
+            true -> {
+                Icon(
+                    imageVector = ImageVector.vectorResource(
+                        id = R.drawable.ic_baseline_pause_24
+                    ),
+                    contentDescription = stringResource(R.string.pause),
+                    modifier = modifier
+                )
+            }
+
+            false -> {
+                Icon(
+                    imageVector = ImageVector.vectorResource(
+                        id = R.drawable.ic_baseline_play_arrow_24
+                    ),
+                    contentDescription = stringResource(R.string.play),
+                    modifier = modifier
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun EmptyView() {
+private fun EmptyView(
+    modifier: Modifier = Modifier
+) {
     Text(
-        text = "No Playlist Available",
-        modifier = Modifier.fillMaxWidth()
-            .padding(20.dp),
+        text = "No Playlist",
+        modifier = modifier,
     )
 }

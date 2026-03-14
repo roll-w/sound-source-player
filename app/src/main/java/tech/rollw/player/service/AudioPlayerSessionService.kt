@@ -22,25 +22,26 @@ import android.os.Bundle
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationManagerCompat
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import tech.rollw.player.R
+import tech.rollw.player.audio.player.AudioPlayerFactory
+import tech.rollw.player.audio.player.AudioPlayerFactory.asMedia3Player
+import tech.rollw.player.audio.player.AudioPlaylistDelegatePlayer.Companion.withAudioPlaylistProvider
 import tech.rollw.player.audio.player.AudioPlaylistProvider
-import tech.rollw.player.audio.player.withAudioPlaylistProvider
+import tech.rollw.player.audio.player.ExperimentalPlayerApi
 import tech.rollw.player.ui.applicationService
 
 /**
  * @author RollW
  */
 @OptIn(UnstableApi::class)
+@kotlin.OptIn(ExperimentalPlayerApi::class)
 class AudioPlayerSessionService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
 
@@ -106,16 +107,19 @@ class AudioPlayerSessionService : MediaSessionService() {
 
         val callback = SessionCallback()
 
-        val player = ExoPlayer.Builder(this)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                    .setUsage(C.USAGE_MEDIA)
-                    .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL)
-                    .build(), false
-            )
-            .setWakeMode(C.WAKE_MODE_LOCAL)
-            .build()
+//        val player = ExoPlayer.Builder(this)
+//            .setAudioAttributes(
+//                AudioAttributes.Builder()
+//                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+//                    .setUsage(C.USAGE_MEDIA)
+//                    .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL)
+//                    .build(), false
+//            )
+//            .setWakeMode(C.WAKE_MODE_LOCAL)
+//            .build()
+        val player = AudioPlayerFactory
+            .MediaPlayer
+            .asMedia3Player()
             .withAudioPlaylistProvider(audioPlaylistProvider)
         mediaSession = MediaSession.Builder(this, player)
             .setCallback(callback)

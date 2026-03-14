@@ -17,46 +17,54 @@
 package tech.rollw.support.io
 
 import java.io.File
+import java.text.StringCharacterIterator
+import kotlin.math.abs
+import kotlin.math.sign
 
 /**
  * @author RollW
  */
+object Files {
+    /**
+     * Try to get the file type by its extension.
+     */
+    fun guessFileType(extension: String): FileType {
+        val lowercase = extension.lowercase()
 
-/**
- * Try to get the file type by its extension.
- */
-fun guessFileType(extension: String): FileType {
-    val lowercase = extension.lowercase()
-
-    // TODO: add more extensions
-    return when (lowercase) {
-        "txt", "md", "html", "xml", "json", "log" -> FileType.TEXT
-        "mp3", "flac", "wav", "ogg", "m4a" -> FileType.AUDIO
-        "mp4", "mkv", "avi", "mov", "wmv" -> FileType.VIDEO
-        "jpg", "jpeg", "png", "gif", "webp" -> FileType.IMAGE
-        "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx" -> FileType.DOCUMENT
-        "apk" -> FileType.APK
-        else -> FileType.OTHER
-    }
-}
-
-fun File.fileType() = guessFileType(extension)
-
-fun String.fileType() = guessFileType(
-    substringAfterLast('.', "")
-)
-
-fun Long.formatSize(reserveDigits: Int = 3): String {
-    if (this == 0L) {
-        return "0 B"
+        // TODO: add more extensions
+        return when (lowercase) {
+            "txt", "md", "html", "xml", "json", "log" -> FileType.TEXT
+            "mp3", "flac", "wav", "ogg", "m4a" -> FileType.AUDIO
+            "mp4", "mkv", "avi", "mov", "wmv" -> FileType.VIDEO
+            "jpg", "jpeg", "png", "gif", "webp" -> FileType.IMAGE
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx" -> FileType.DOCUMENT
+            "apk" -> FileType.APK
+            else -> FileType.OTHER
+        }
     }
 
-    val size = this.toFloat()
-    val decimalFormat = "%.${reserveDigits}f"
-    return when {
-        size < 1024 -> "$decimalFormat B".format(size)
-        size < 1024 * 1024 -> "$decimalFormat KB".format(size / 1024)
-        size < 1024 * 1024 * 1024 -> "$decimalFormat MB".format(size / 1024 / 1024)
-        else -> "$decimalFormat GB".format(size / 1024 / 1024 / 1024)
+    fun File.fileType() = guessFileType(extension)
+
+    fun String.fileType() = guessFileType(
+        substringAfterLast('.', "")
+    )
+
+    fun Long.formatSize(reserveDigits: Int = 3): String {
+        val absB = if (this == Long.MIN_VALUE) Long.MAX_VALUE
+        else abs(this)
+        if (absB < 1024) {
+            return "$this B"
+        }
+        var value = absB
+        val ci = StringCharacterIterator("KMGTPE")
+        var i = 40
+        while (i >= 0 && absB > 0xfffccccccccccccL shr i) {
+            value = value shr 10
+            ci.next()
+            i -= 10
+        }
+
+        value *= sign
+        return String.format("%.${reserveDigits}f %cB", value / 1024.0, ci.current())
     }
 }

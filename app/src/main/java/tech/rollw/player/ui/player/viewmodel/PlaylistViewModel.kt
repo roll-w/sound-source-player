@@ -48,4 +48,8 @@ interface PlaylistViewModel {
     )
 
     val index: StateFlow<SourcedData<Int>>
+
+    fun collectAudioContentAsState(): StateFlow<AudioContent?> {
+        TODO("Not yet implemented")
+    }
 }

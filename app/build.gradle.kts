@@ -31,7 +31,7 @@ val dimensionAbi = "abi"
 
 android {
     namespace = "tech.rollw.player"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "tech.rollw.player"
@@ -41,6 +41,7 @@ android {
         versionName = "0.1.5-beta06"
 
         val filesAuthorityValue = "$applicationId.FileProvider"
+        manifestPlaceholders += mapOf("filesAuthority" to filesAuthorityValue)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
@@ -49,7 +50,6 @@ android {
                 arguments += "-DANDROID_STL=c++_shared"
             }
         }
-        manifestPlaceholders += mapOf("filesAuthority" to filesAuthorityValue)
 
         buildConfigField(
             "String",
@@ -188,6 +188,7 @@ dependencies {
 
     implementation(libs.bundles.androidx.compose)
     implementation(libs.bundles.accompanist)
+    implementation(libs.bundles.androidx.glance)
     implementation(libs.bundles.androidx.work)
     implementation(libs.bundles.androidx.lifecycle)
     implementation(libs.bundles.androidx.media3)
@@ -203,7 +204,10 @@ dependencies {
 
     implementation(libs.coil.compose)
 
+    //noinspection UseTomlInstead
     debugImplementation("com.guolindev.glance:glance:1.1.0")
+    //noinspection UseTomlInstead
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:3.0-alpha-6")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.bundles.androidx.test)
@@ -211,4 +215,20 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+android.applicationVariants.all {
+    val variant = this
+    val capitalizedName = variant.name.capitalizeAsciiOnly()
+    task(
+        "copyFiles$capitalizedName"
+    ) {
+        this.group = "build"
+        this.description = "Copy output files (such as apk file) for ${variant.name}"
+    }
+    // TODO: copy files to output directory
+
+    tasks.named("assemble$capitalizedName").configure {
+        finalizedBy("copyFiles$capitalizedName")
+    }
 }

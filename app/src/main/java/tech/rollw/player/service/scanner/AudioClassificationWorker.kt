@@ -339,7 +339,7 @@ class AudioClassificationWorker(
                 .enqueue()
         }
 
-        fun <T, K> Iterable<T>.groupByMany(
+        private fun <T, K> Iterable<T>.groupByMany(
             keyExtractor: (T) -> Iterable<K>
         ): Map<K, List<T>> = mutableMapOf<K, MutableList<T>>()
             .also { grouping ->

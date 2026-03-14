@@ -18,6 +18,7 @@ package tech.rollw.player.audio.list
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import tech.rollw.player.audio.list.PlaylistItem.Companion.NO_ITEM
 
@@ -26,16 +27,22 @@ import tech.rollw.player.audio.list.PlaylistItem.Companion.NO_ITEM
  *
  * @author RollW
  */
-@Entity(tableName = "playlist_item")
+@Entity(tableName = "playlist_item",
+    indices = [
+        Index(value = ["playlist_id"]),
+    ]
+)
 data class PlaylistItem(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     val id: Long?,
+
     /**
      * Refer to [Playlist.id]
      */
     @ColumnInfo(name = "playlist_id")
     val playlistId: Long,
+
     /**
      * Refer to [tech.rollw.player.audio.Audio.id]
      */
@@ -67,5 +74,23 @@ data class PlaylistItem(
 
     companion object {
         const val NO_ITEM = -1L
+
+        fun List<PlaylistItem>.sortedBySequence(): List<PlaylistItem> {
+            val top = filter { it.isTop }
+            if (top.isEmpty()) {
+                return this
+            }
+            if (top.size > 1) {
+                throw IllegalStateException("There should be only one top item.")
+            }
+            val result = mutableListOf<PlaylistItem>()
+            var current = top.first()
+            while (current.next != NO_ITEM) {
+                result.add(current)
+                current = first { it.id == current.next }
+            }
+            result.add(current)
+            return result
+        }
     }
 }

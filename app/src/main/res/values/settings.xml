@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (C) 2024 RollW
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="setting_storage">Storage</string>
+    <string name="setting_storage_summary">Provides storage management options.</string>
+    <string name="setting_debug">Debug</string>
+    <string name="setting_debug_summary" translatable="false">Debug</string>
+    <string name="setting_ui">UI</string>
+    <string name="setting_ui_summary">Provides UI customization options.</string>
+    <string name="setting_media_library">Media Library</string>
+    <string name="setting_media_library_summary">Manage media library settings.</string>
+    <string name="setting_audio">Audio</string>
+    <string name="setting_audio_summary">Audio settings.</string>
+    <string name="setting_lyric">Lyric</string>
+    <string name="setting_lyric_summary">Lyric settings.</string>
+
+    <string name="setting_ui_night_mode_title">Dark Mode</string>
+    <string name="setting_ui_night_mode_system">Follow System</string>
+    <string name="setting_ui_night_mode_light">On</string>
+    <string name="setting_ui_night_mode_dark">Off</string>
+
+    <string name="setting_ui_language_title">Language</string>
+
+    <string name="setting_debug_category_debug_title" translatable="false">@string/setting_debug</string>
+    <string name="setting_debug_category_debug_summary">
+        The debug toolset contains unstable features and internal debugging tools,
+        using them may cause the application to be unstable or data loss.
+        We are not responsible for any consequences of using these tools.
+    </string>
+    <string name="setting_debug_database_title">Recreate Database</string>
+    <string name="setting_debug_database_summary">DANGEROUS: Delete and recreate the database.</string>
+
+    <string name="setting_storage_clear_cache_title">Clear Cache</string>
+    <string name="setting_storage_clear_cache_summary">Clear all cache files generated during the running of the app.</string>
+
+    <string name="setting_storage_clear_data_title">Clear Data</string>
+    <string name="setting_storage_clear_data_summary">
+        Completely clear all user data, including settings and data files.
+        This operation is irreversible!
+    </string>
+
+    <string name="setting_category_general_title">General</string>
+</resources>
