@@ -16,11 +16,14 @@
 
 package tech.rollw.player.audio
 
+import android.net.Uri
 import android.os.Bundle
+import androidx.core.os.BundleCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import tech.rollw.player.data.storage.LocalImageLoader
 import tech.rollw.support.io.ContentPath
+import tech.rollw.support.io.PathType
 
 /**
  * @author RollW
@@ -34,6 +37,8 @@ fun Audio.toMediaItem(
     artwork: ByteArray? = null
 ) = toMediaItem(audioPath.path, artwork)
 
+private const val PREFIX_AUDIO = "audio="
+
 /**
  * Convert [Audio] to [MediaItem].
  */
@@ -41,7 +46,7 @@ fun Audio.toMediaItem(
     contentPath: ContentPath,
     artwork: ByteArray? = null
 ) = MediaItem.Builder()
-    .setMediaId("audio=$id")
+    .setMediaId("$PREFIX_AUDIO$id")
     .setUri(contentPath.toUri())
     .setMediaMetadata(
         MediaMetadata.Builder()
@@ -54,6 +59,7 @@ fun Audio.toMediaItem(
             .setExtras(Bundle().apply {
                 putString("path", contentPath.path)
                 putSerializable("type", contentPath.type)
+                putSerializable("audioContent", AudioContent(this@toMediaItem, contentPath))
             })
             .build()
     )
@@ -62,6 +68,35 @@ fun Audio.toMediaItem(
 fun AudioContent.toMediaItem(
     artwork: ByteArray? = null
 ) = audio.toMediaItem(path, artwork)
+
+fun MediaItem.toAudioContent(): AudioContent {
+    val audioContent = mediaMetadata.extras?.let {
+        BundleCompat.getSerializable(it, "audioContent", AudioContent::class.java)
+    }
+    if (audioContent != null) {
+        return audioContent
+    }
+
+    val path: ContentPath = mediaMetadata.extras?.let {
+        val path = it.getString("path")
+        val type = BundleCompat.getSerializable(it, "type", PathType::class.java)
+        ContentPath(path!!, type!!)
+    } ?: buildPathFromUri(localConfiguration?.uri ?: Uri.EMPTY)
+
+    val id = this.mediaId.substringAfter(PREFIX_AUDIO).toIntOrNull()
+    val audio = Audio.EMPTY.copy(
+        id = id?.toLong(),
+        title = mediaMetadata.title.toString(),
+        artist = mediaMetadata.artist.toString(),
+        album = mediaMetadata.albumTitle.toString(),
+        albumArtist = mediaMetadata.albumArtist.toString(),
+    )
+
+    return AudioContent(audio, path)
+}
+
+private fun buildPathFromUri(uri: Uri) =
+    ContentPath(uri.toString(), PathType.URI)
 
 @Throws(IllegalArgumentException::class)
 fun List<AudioContent>.toMediaItems(

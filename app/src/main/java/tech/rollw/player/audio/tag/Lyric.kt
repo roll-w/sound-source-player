@@ -24,6 +24,10 @@ data class Lyric(
     val body: List<LyricRow>
 ) {
 
+    fun isEmpty(): Boolean {
+        return header.isEmpty() && body.isEmpty()
+    }
+
     fun count(): Int {
         return header.size + body.size
     }

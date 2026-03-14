@@ -45,6 +45,10 @@ import tech.rollw.player.audio.toMediaItem
  */
 // TODO: shuffle mode and repeat mode.
 @OptIn(UnstableApi::class)
+@Deprecated(
+    "Use AudioPlayerManager instead.",
+    replaceWith = ReplaceWith("AudioPlayerManager")
+)
 class AudioPlaylistDelegatePlayer(
     private val player: Player,
     private val audioPlaylistProvider: AudioPlaylistProvider
@@ -97,7 +101,7 @@ class AudioPlaylistDelegatePlayer(
         ) {
             return
         }
-        val playingState = player.isPlaying
+        val playingState = player.playWhenReady
         audioPlaylistProvider.setIndex(
             audioPlaylistProvider.index + 1,
             identifier
@@ -109,6 +113,11 @@ class AudioPlaylistDelegatePlayer(
     }
 
     override fun seekToPreviousMediaItem() = seekToPrevious()
+
+    override fun stop() {
+        player.stop()
+        player.playWhenReady = false
+    }
 
     override fun seekToPrevious() {
         if (audioPlaylistProvider.index - 1 < 0) {
@@ -166,7 +175,7 @@ class AudioPlaylistDelegatePlayer(
         if (playlist.isEmpty()) {
             return
         }
-        val playingState = extras?.getBoolean(EXTRA_PLAY, isPlaying)
+        val playingState = extras?.getBoolean(AudioPlayerManager.EXTRA_PLAY, isPlaying)
             ?: isPlaying
         setAudioAndPlay(playlist[index], playingState)
     }
@@ -181,7 +190,7 @@ class AudioPlaylistDelegatePlayer(
         ) {
             return
         }
-        val playingState = extras?.getBoolean(EXTRA_PLAY, isPlaying)
+        val playingState = extras?.getBoolean(AudioPlayerManager.EXTRA_PLAY, isPlaying)
             ?: isPlaying
         setAudioAndPlay(audio, playingState)
     }
@@ -199,15 +208,23 @@ class AudioPlaylistDelegatePlayer(
          * If not set, will play the audio according to the current
          * state (whether it is playing or not).
          */
+        @Deprecated(
+            "Use AudioPlayerManager.EXTRA_PLAY instead.",
+            replaceWith = ReplaceWith(
+                "AudioPlayerManager.EXTRA_PLAY",
+                "tech.rollw.player.audio.player.AudioPlayerManager"
+            )
+        )
         const val EXTRA_PLAY = "AudioPlaylistDelegatePlayer.EXTRA_PLAY"
-    }
-}
 
-fun Player.withAudioPlaylistProvider(
-    audioPlaylistProvider: AudioPlaylistProvider
-): Player {
-    if (this is AudioPlaylistDelegatePlayer) {
-        return this
+        @Deprecated("Use AudioPlayerManager instead.")
+        fun Player.withAudioPlaylistProvider(
+            audioPlaylistProvider: AudioPlaylistProvider
+        ): Player {
+            if (this is AudioPlaylistDelegatePlayer) {
+                return this
+            }
+            return AudioPlaylistDelegatePlayer(this, audioPlaylistProvider)
+        }
     }
-    return AudioPlaylistDelegatePlayer(this, audioPlaylistProvider)
 }

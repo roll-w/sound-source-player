@@ -35,6 +35,8 @@ interface AudioPlayer {
 
     fun release()
 
+    val playerEngine: AudioPlayerEngine
+
     val playerState: PlayerState
 
     val playbackState: PlaybackState
@@ -103,6 +105,10 @@ interface AudioPlayer {
             else -> "UNKNOWN"
         }
 
+        fun isPlaying(): Boolean {
+            return this == PLAYING
+        }
+
         companion object {
             val IDLE = PlaybackState(0)
             val BUFFERING = PlaybackState(1)
@@ -110,6 +116,7 @@ interface AudioPlayer {
             val PAUSED = PlaybackState(3)
             val ENDED = PlaybackState(4)
             val STOPPED = PlaybackState(5)
+
         }
     }
 }
